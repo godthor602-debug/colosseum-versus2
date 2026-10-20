@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Total Battle: 2-Player Colosseum Duel Comparator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap');
+    
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    body { font-family: 'Inter', sans-serif; background-color: #0b0c10; color: #e0e2ec; }
+    
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0c10; }
+    ::-webkit-scrollbar-thumb { background: #2f3542; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #d97706; }
+    
+    .stat-glow {
+      text-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200">
+
+  <!-- Header -->
+  <header class="border-b border-amber-900/40 bg-stone-950/95 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner">
+          <i data-lucide="swords" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-cinzel text-lg md:text-xl font-bold tracking-wide text-amber-400">Colosseum Duel Comparator</h1>
+          <p class="text-xs text-stone-400">Full 2-Player Builder & Head-to-Head Simulator</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button id="btn-simulate" class="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-900/30 transition">
+          <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+          <span>Run Duel</span>
+        </button>
+        <button id="btn-share-duel" class="px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-xs text-stone-300 transition flex items-center gap-1">
+          <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Share Match</span>
+        </button>
+        <button id="btn-reset" class="px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-xs text-stone-300 transition">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- MATCH RESULT BANNER -->
+    <section id="result-banner" class="bg-gradient-to-r from-stone-950 via-neutral-900 to-stone-950 border border-amber-600/40 rounded-2xl p-5 shadow-2xl">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- P1 Summary -->
+        <div class="flex items-center space-x-4 w-full md:w-5/12 justify-start">
+          <div class="w-12 h-12 rounded-xl bg-red-950/70 border border-red-500/50 flex items-center justify-center text-red-400 font-cinzel font-bold text-lg">
+            P1
+          </div>
+          <div>
+            <h3 id="p1-display-name" class="font-cinzel text-lg font-bold text-red-400">Player 1</h3>
+            <p id="p1-summary-stats" class="text-xs text-stone-400">Synergy: 0/100 | EHP: 0M</p>
+            <div id="p1-tags-preview" class="flex flex-wrap gap-1 mt-1"></div>
+          </div>
+        </div>
+
+        <!-- Center Match Verdict -->
+        <div class="flex flex-col items-center justify-center text-center px-4">
+          <span class="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">Match Outcome</span>
+          <div id="winner-verdict" class="text-2xl md:text-3xl font-extrabold font-cinzel text-amber-400 stat-glow my-1">
+            RUN SIMULATION
+          </div>
+          <span id="verdict-detail" class="text-xs text-stone-300 font-mono">2-Round Combat Check</span>
+        </div>
+
+        <!-- P2 Summary -->
+        <div class="flex items-center space-x-4 w-full md:w-5/12 justify-end text-right">
+          <div>
+            <h3 id="p2-display-name" class="font-cinzel text-lg font-bold text-cyan-400">Player 2</h3>
+            <p id="p2-summary-stats" class="text-xs text-stone-400">Synergy: 0/100 | EHP: 0M</p>
+            <div id="p2-tags-preview" class="flex flex-wrap gap-1 mt-1 justify-end"></div>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-cyan-950/70 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-cinzel font-bold text-lg">
+            P2
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2-Round Breakdown Cards -->
+      <div class="mt-6 pt-5 border-t border-stone-800 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Round 1 Box (P1 Initiator) -->
+        <div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800/80">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-stone-300 flex items-center gap-1.5 font-cinzel">
+              <i data-lucide="swords" class="w-3.5 h-3.5 text-amber-400"></i> Round 1 (P1 Initiator Attacks)
+            </span>
+            <span id="r1-winner-badge" class="text-[11px] px-2 py-0.5 rounded font-bold bg-stone-800 text-stone-300 border border-stone-700">
+              Pending
+            </span>
+          </div>
+          <div class="space-y-1.5 text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-stone-400">P1 Remaining Troops:</span>
+              <span id="r1-p1-surv" class="font-mono text-emerald-400 font-bold">0%</span>
+            </div>
+            <div class="w-full bg-stone-900 rounded-full h-1.5 overflow-hidden">
+              <div id="bar-r1-p1" class="bg-red-500 h-full rounded-full transition-all" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Round 2 Box (P2 Initiator) -->
+        <div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800/80">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-stone-300 flex items-center gap-1.5 font-cinzel">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i> Round 2 (P2 Initiator Attacks)
+            </span>
+            <span id="r2-winner-badge" class="text-[11px] px-2 py-0.5 rounded font-bold bg-stone-800 text-stone-300 border border-stone-700">
+              Pending
+            </span>
+          </div>
+          <div class="space-y-1.5 text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-stone-400">P1 Defense Margin:</span>
+              <span id="r2-p1-surv" class="font-mono text-emerald-400 font-bold">0%</span>
+            </div>
+            <div class="w-full bg-stone-900 rounded-full h-1.5 overflow-hidden">
+              <div id="bar-r2-p1" class="bg-red-500 h-full rounded-full transition-all" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-center">
+        <p id="tiebreaker-note" class="text-xs text-stone-400 italic">
+          Official In-Game Rule: "If the score is tied 1-1, the player with the highest proportion of surviving troops in their winning round wins the battle."
+        </p>
+      </div>
+    </section>
+
+    <!-- 2-PLAYER FULL INPUT STATIONS (Side-by-Side) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- ================= PLAYER 1 FULL BUILDER ================= -->
+      <div class="bg-stone-900/70 border border-red-900/40 rounded-2xl p-5 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <input type="text" id="p1-name-input" value="Player 1" class="bg-transparent font-cinzel font-bold text-red-400 text-lg focus:outline-none focus:border-b border-red-500">
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded bg-red-950 border border-red-800 text-red-300 font-semibold">
+            Initiator (Round 1)
+          </span>
+        </div>
+
+        <!-- 5 Captain Roster -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-xs font-semibold text-stone-400 uppercase tracking-wider">5 Captain Roster & Skills</h4>
+            <span id="p1-synergy-badge" class="text-[11px] font-mono text-amber-400">Synergy: 50/100</span>
+          </div>
+          <div id="p1-captains" class="space-y-3"></div>
+        </div>
+
+        <!-- Troops & Meatshield Buffer (T1-T9) -->
+        <div class="border-t border-stone-800 pt-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Troops & Monsters (T1 - T9)</h4>
+            <span id="p1-meatshield-ratio" class="text-[11px] font-mono text-emerald-400">Meatshield: 0%</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Infantry (Meatshield)</span>
+                <select id="p1-inf-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="1">T1</option><option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p1-inf-count" value="162000" step="5000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-emerald-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Ranged Bowmen</span>
+                <select id="p1-rng-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p1-rng-count" value="40000" step="2000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-cyan-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Mounted Cavalry</span>
+                <select id="p1-cav-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p1-cav-count" value="25000" step="2000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-yellow-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Epic Monsters</span>
+                <select id="p1-mon-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="phoenix">Phoenix</option><option value="kraken">Kraken</option><option value="gryphon">Gryphon</option>
+                </select>
+              </div>
+              <input type="number" id="p1-mon-count" value="3500" step="250" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-red-400">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dragon -->
+        <div class="border-t border-stone-800 pt-3 flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-stone-300 font-semibold">Dragon Focus:</span>
+            <select id="p1-dragon-focus" class="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-stone-300 text-[11px]">
+              <option value="inferno">Inferno Breath (AoE)</option>
+              <option value="shield">Defense Roar</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="text-stone-400">Lv:</span>
+            <input type="number" id="p1-dragon-lvl" value="300" min="1" max="300" class="w-16 bg-stone-950 border border-stone-700 rounded px-1.5 py-1 font-mono text-amber-400 text-center">
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PLAYER 2 FULL BUILDER ================= -->
+      <div class="bg-stone-900/70 border border-cyan-900/40 rounded-2xl p-5 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 rounded-full bg-cyan-500"></div>
+            <input type="text" id="p2-name-input" value="Player 2" class="bg-transparent font-cinzel font-bold text-cyan-400 text-lg focus:outline-none focus:border-b border-cyan-500">
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-cyan-300 font-semibold">
+            Defender (Round 1)
+          </span>
+        </div>
+
+        <!-- 5 Captain Roster -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-xs font-semibold text-stone-400 uppercase tracking-wider">5 Captain Roster & Skills</h4>
+            <span id="p2-synergy-badge" class="text-[11px] font-mono text-cyan-400">Synergy: 50/100</span>
+          </div>
+          <div id="p2-captains" class="space-y-3"></div>
+        </div>
+
+        <!-- Troops & Meatshield Buffer (T1-T9) -->
+        <div class="border-t border-stone-800 pt-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-semibold text-stone-400 uppercase tracking-wider">Troops & Monsters (T1 - T9)</h4>
+            <span id="p2-meatshield-ratio" class="text-[11px] font-mono text-emerald-400">Meatshield: 0%</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Infantry (Meatshield)</span>
+                <select id="p2-inf-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="1">T1</option><option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p2-inf-count" value="125000" step="5000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-emerald-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Ranged Bowmen</span>
+                <select id="p2-rng-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p2-rng-count" value="35000" step="2000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-cyan-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Mounted Cavalry</span>
+                <select id="p2-cav-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="5">T5</option><option value="7">T7</option><option value="8">T8</option><option value="9" selected>T9</option>
+                </select>
+              </div>
+              <input type="number" id="p2-cav-count" value="20000" step="2000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-yellow-400">
+            </div>
+
+            <div class="bg-stone-950/60 p-2.5 rounded border border-stone-800">
+              <div class="flex justify-between mb-1">
+                <span class="text-stone-300">Epic Monsters</span>
+                <select id="p2-mon-tier" class="bg-stone-800 text-[10px] rounded px-1 text-stone-300">
+                  <option value="phoenix">Phoenix</option><option value="kraken">Kraken</option><option value="gryphon">Gryphon</option>
+                </select>
+              </div>
+              <input type="number" id="p2-mon-count" value="2000" step="200" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-red-400">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dragon -->
+        <div class="border-t border-stone-800 pt-3 flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-stone-300 font-semibold">Dragon Focus:</span>
+            <select id="p2-dragon-focus" class="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-stone-300 text-[11px]">
+              <option value="inferno">Inferno Breath (AoE)</option>
+              <option value="shield">Defense Roar</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="text-stone-400">Lv:</span>
+            <input type="number" id="p2-dragon-lvl" value="300" min="1" max="300" class="w-16 bg-stone-950 border border-stone-700 rounded px-1.5 py-1 font-mono text-cyan-400 text-center">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const CAPTAINS = [
+      { id: 'heimdall', name: 'Heimdall', tier: 'S', baseSpeed: 95 },
+      { id: 'hercules', name: 'Hercules', tier: 'S', baseSpeed: 88 },
+      { id: 'cleopatra', name: 'Cleopatra', tier: 'S', baseSpeed: 82 },
+      { id: 'beowulf', name: 'Beowulf', tier: 'A', baseSpeed: 85 },
+      { id: 'skadi', name: 'Skadi', tier: 'S', baseSpeed: 104 },
+      { id: 'leonidas', name: 'Leonidas', tier: 'A', baseSpeed: 84 },
+      { id: 'ramses', name: 'Ramses', tier: 'A', baseSpeed: 86 },
+      { id: 'logos', name: 'Logos', tier: 'B', baseSpeed: 89 },
+      { id: 'ingrid', name: 'Ingrid', tier: 'B', baseSpeed: 80 },
+      { id: 'aydae', name: 'Aydae', tier: 'B', baseSpeed: 81 },
+      { id: 'artemisia', name: 'Artemisia', tier: 'A', baseSpeed: 98 },
+      { id: 'carter', name: 'Carter', tier: 'C', baseSpeed: 75 }
+    ];
+
+    // Default setups
+    let p1Squad = [
+      { captainId: 'heimdall', level: 457, stars: 7, skill: 'shield', gear: 'mythic' },
+      { captainId: 'hercules', level: 468, stars: 3, skill: 'burst', gear: 'mythic' },
+      { captainId: 'cleopatra', level: 443, stars: 7, skill: 'support', gear: 'mythic' },
+      { captainId: 'beowulf', level: 400, stars: 3, skill: 'burst', gear: 'mythic' },
+      { captainId: 'skadi', level: 370, stars: 1, skill: 'cc', gear: 'mythic' }
+    ];
+
+    let p2Squad = [
+      { captainId: 'hercules', level: 452, stars: 1, skill: 'burst', gear: 'mythic' },
+      { captainId: 'heimdall', level: 417, stars: 4, skill: 'shield', gear: 'mythic' },
+      { captainId: 'beowulf', level: 416, stars: 2, skill: 'burst', gear: 'mythic' },
+      { captainId: 'skadi', level: 339, stars: 1, skill: 'cc', gear: 'mythic' },
+      { captainId: 'cleopatra', level: 346, stars: 6, skill: 'support', gear: 'mythic' }
+    ];
+
+    function renderSquad(containerId, squad, prefix) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      squad.forEach((slot, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-stone-950/80 p-3 rounded-lg border border-stone-800 space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-4 h-4 rounded-full bg-stone-800 text-[10px] text-stone-400 flex items-center justify-center font-bold">
+                ${index + 1}
+              </span>
+              <select class="bg-stone-900 border border-stone-700 text-xs font-semibold text-amber-300 rounded px-2 py-1 focus:outline-none" 
+                onchange="updateCaptain('${prefix}', ${index}, 'captainId', this.value)">
+                ${CAPTAINS.map(c => `<option value="${c.id}" ${c.id === slot.captainId ? 'selected' : ''}>${c.name} [Tier${c.tier}]</option>`).join('')}
+              </select>
+            </div>
+            <select class="bg-stone-900 border border-stone-700 text-xs text-amber-400 font-bold rounded px-1.5 py-1"
+              onchange="updateCaptain('${prefix}', ${index}, 'stars', parseInt(this.value))">
+              ${[1,2,3,4,5,6,7].map(s => `<option value="${s}" ${s === slot.stars ? 'selected' : ''}>${s}★</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-[11px] pt-1">
+            <div>
+              <div class="flex justify-between text-stone-400">
+                <span>Lvl:</span>
+                <span class="font-bold text-stone-200" id="${prefix}-lvl-lbl-${index}">Lv ${slot.level}</span>
+              </div>
+              <input type="range" min="1" max="500" value="${slot.level}" class="w-full accent-amber-500"
+                oninput="document.getElementById('${prefix}-lvl-lbl-${index}').innerText = 'Lv ' + this.value; updateCaptain('${prefix}', ${index}, 'level', parseInt(this.value))">
+            </div>
+
+            <div>
+              <span class="text-stone-400 block mb-0.5">Skill Focus:</span>
+              <select class="w-full bg-stone-900 border border-stone-700 rounded px-1 py-1 text-[10px] text-stone-300"
+                onchange="updateCaptain('${prefix}', ${index}, 'skill', this.value)">
+                <option value="shield" ${slot.skill === 'shield' ? 'selected' : ''}>Shield/Tank</option>
+                <option value="burst" ${slot.skill === 'burst' ? 'selected' : ''}>Burst Cleave</option>
+                <option value="cc" ${slot.skill === 'cc' ? 'selected' : ''}>Crowd Control</option>
+                <option value="support" ${slot.skill === 'support' ? 'selected' : ''}>Team Sustain</option>
+              </select>
+            </div>
+
+            <div>
+              <span class="text-stone-400 block mb-0.5">Gear Quality:</span>
+              <select class="w-full bg-stone-900 border border-stone-700 rounded px-1 py-1 text-[10px] text-stone-300"
+                onchange="updateCaptain('${prefix}', ${index}, 'gear', this.value)">
+                <option value="mythic" ${slot.gear === 'mythic' ? 'selected' : ''}>Gold Lv 60</option>
+                <option value="purple" ${slot.gear === 'purple' ? 'selected' : ''}>Purple Lv 50</option>
+                <option value="blue" ${slot.gear === 'blue' ? 'selected' : ''}>Blue Lv 40</option>
+              </select>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    window.updateCaptain = function(prefix, idx, key, val) {
+      if (prefix === 'p1') p1Squad[idx][key] = val;
+      else p2Squad[idx][key] = val;
+      simulateBattle();
+    };
+
+    function evaluateSquad(squad, prefix) {
+      const activeIds = squad.map(s => s.captainId);
+      let synergy = 50;
+      let tags = [];
+      let skadiSpeed = 0;
+
+      const hasHeimdall = activeIds.includes('heimdall');
+      const hasHercules = activeIds.includes('hercules');
+      const hasCleo = activeIds.includes('cleopatra');
+      const hasSkadi = activeIds.includes('skadi');
+      const hasBeowulf = activeIds.includes('beowulf');
+
+      if (hasHeimdall && hasHercules) {
+        synergy += 15;
+        tags.push('Heimdall+Hercules Anchor');
+      }
+      if (hasSkadi) {
+        synergy += 10;
+        const skadiCapt = squad.find(s => s.captainId === 'skadi');
+        skadiSpeed = skadiCapt ? skadiCapt.level : 0;
+        tags.push('Skadi Freeze');
+      }
+      if (hasCleo) {
+        synergy += 10;
+        tags.push('Cleopatra Sustain');
+      }
+      if (hasBeowulf && hasHercules) {
+        synergy += 8;
+        tags.push('Dual Cleave');
+      }
+
+      let totalStars = squad.reduce((sum, c) => sum + c.stars, 0);
+      let avgLevel = squad.reduce((sum, c) => sum + c.level, 0) / 5;
+      let gearBonus = squad.filter(c => c.gear === 'mythic').length * 2;
+      synergy = Math.min(100, synergy + gearBonus);
+
+      const inf = parseInt(document.getElementById(`${prefix}-inf-count`).value) || 0;
+      const infTier = parseInt(document.getElementById(`${prefix}-inf-tier`).value) || 9;
+      const rng = parseInt(document.getElementById(`${prefix}-rng-count`).value) || 0;
+      const cav = parseInt(document.getElementById(`${prefix}-cav-count`).value) || 0;
+      const mon = parseInt(document.getElementById(`${prefix}-mon-count`).value) || 0;
+      const dragon = parseInt(document.getElementById(`${prefix}-dragon-lvl`).value) || 100;
+
+      const tierHPMult = { 1: 1, 5: 6.5, 7: 16, 8: 24, 9: 36 };
+      const rawMeatshieldHP = (inf * (tierHPMult[infTier] || 36) * 12);
+      const totalTroops = inf + rng + cav + mon;
+      const meatshieldRatio = totalTroops > 0 ? Math.round((inf / totalTroops) * 100) : 0;
+
+      const effectiveHP = rawMeatshieldHP + (rng * 250) + (cav * 320) + (mon * 3800);
+      const offensiveBurst = (rng * 20) + (cav * 24) + (mon * 260) + (avgLevel * 45) + (totalStars * 150);
+
+      return {
+        synergy,
+        tags,
+        effectiveHP,
+        offensiveBurst,
+        meatshieldRatio,
+        skadiSpeed,
+        avgLevel,
+        totalStars,
+        dragon
+      };
+    }
+
+    function simulateBattle() {
+      const p1 = evaluateSquad(p1Squad, 'p1');
+      const p2 = evaluateSquad(p2Squad, 'p2');
+
+      const p1Name = document.getElementById('p1-name-input').value || 'Player 1';
+      const p2Name = document.getElementById('p2-name-input').value || 'Player 2';
+
+      // Update Header summaries
+      document.getElementById('p1-display-name').textContent = p1Name;
+      document.getElementById('p2-display-name').textContent = p2Name;
+      document.getElementById('p1-summary-stats').textContent = `Synergy: ${p1.synergy}/100 | EHP: ${(p1.effectiveHP/1000000).toFixed(1)}M`;
+      document.getElementById('p2-summary-stats').textContent = `Synergy: ${p2.synergy}/100 | EHP: ${(p2.effectiveHP/1000000).toFixed(1)}M`;
+
+      document.getElementById('p1-synergy-badge').textContent = `Synergy: ${p1.synergy}/100`;
+      document.getElementById('p2-synergy-badge').textContent = `Synergy: ${p2.synergy}/100`;
+      document.getElementById('p1-meatshield-ratio').textContent = `Meatshield: ${p1.meatshieldRatio}%`;
+      document.getElementById('p2-meatshield-ratio').textContent = `Meatshield: ${p2.meatshieldRatio}%`;
+
+      document.getElementById('p1-tags-preview').innerHTML = p1.tags.map(t => `<span class="text-[9px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">${t}</span>`).join('');
+      document.getElementById('p2-tags-preview').innerHTML = p2.tags.map(t => `<span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">${t}</span>`).join('');
+
+      // ROUND 1: P1 Initiator attacks P2
+      const p1InitiativeBonus = (p1.skadiSpeed >= p2.skadiSpeed) ? 12 : -8;
+      const r1P1Net = (p1.offensiveBurst * (p1.synergy / 60)) + p1InitiativeBonus;
+      const r1P2Defense = (p2.effectiveHP * 0.35);
+
+      let r1P1Surv = Math.max(0, Math.min(85, Math.round(((p1.effectiveHP / (p2.offensiveBurst || 1)) * 35) + p1InitiativeBonus)));
+      let r1P2Surv = Math.max(0, Math.min(85, Math.round(((p2.effectiveHP / (p1.offensiveBurst || 1)) * 25) - 15)));
+
+      let r1Winner = r1P1Surv > r1P2Surv ? 'p1' : 'p2';
+
+      // ROUND 2: P2 Initiator attacks P1
+      const p2InitiativeBonus = (p2.skadiSpeed >= p1.skadiSpeed) ? 12 : -8;
+      let r2P2Surv = Math.max(0, Math.min(85, Math.round(((p2.effectiveHP / (p1.offensiveBurst || 1)) * 35) + p2InitiativeBonus)));
+      let r2P1Surv = Math.max(0, Math.min(85, Math.round(((p1.effectiveHP / (p2.offensiveBurst || 1)) * 25) - 15)));
+
+      let r2Winner = r2P2Surv > r2P1Surv ? 'p2' : 'p1';
+
+      // Update R1 Box
+      if (r1Winner === 'p1') {
+        document.getElementById('r1-winner-badge').textContent = `${p1Name} Wins (${r1P1Surv}% vs 0%)`;
+        document.getElementById('r1-winner-badge').className = 'text-[11px] px-2 py-0.5 rounded font-bold bg-red-950 text-red-300 border border-red-800';
+      } else {
+        document.getElementById('r1-winner-badge').textContent = `${p2Name} Wins (${r1P2Surv}% vs 0%)`;
+        document.getElementById('r1-winner-badge').className = 'text-[11px] px-2 py-0.5 rounded font-bold bg-cyan-950 text-cyan-300 border border-cyan-800';
+      }
+      document.getElementById('r1-p1-surv').textContent = `${r1P1Surv}%`;
+      document.getElementById('bar-r1-p1').style.width = `${r1P1Surv}%`;
+
+      // Update R2 Box
+      if (r2Winner === 'p1') {
+        document.getElementById('r2-winner-badge').textContent = `${p1Name} Defends (${r2P1Surv}% vs 0%)`;
+        document.getElementById('r2-winner-badge').className = 'text-[11px] px-2 py-0.5 rounded font-bold bg-red-950 text-red-300 border border-red-800';
+      } else {
+        document.getElementById('r2-winner-badge').textContent = `${p2Name} Breaks Through (${r2P2Surv}% vs 0%)`;
+        document.getElementById('r2-winner-badge').className = 'text-[11px] px-2 py-0.5 rounded font-bold bg-cyan-950 text-cyan-300 border border-cyan-800';
+      }
+      document.getElementById('r2-p1-surv').textContent = `${r2P1Surv}%`;
+      document.getElementById('bar-r2-p1').style.width = `${r2P1Surv}%`;
+
+      // Match Decision & Official Tiebreaker
+      const verdict = document.getElementById('winner-verdict');
+      const detail = document.getElementById('verdict-detail');
+
+      if (r1Winner === 'p1' && r2Winner === 'p1') {
+        verdict.textContent = `${p1Name.toUpperCase()} WINS`;
+        verdict.className = 'text-2xl md:text-3xl font-extrabold font-cinzel text-red-400 stat-glow my-1';
+        detail.textContent = '2 - 0 Clean Sweep across both Rounds';
+      } else if (r1Winner === 'p2' && r2Winner === 'p2') {
+        verdict.textContent = `${p2Name.toUpperCase()} WINS`;
+        verdict.className = 'text-2xl md:text-3xl font-extrabold font-cinzel text-cyan-400 stat-glow my-1';
+        detail.textContent = '2 - 0 Clean Sweep for Player 2';
+      } else {
+        // 1-1 TIEBREAKER
+        if (r1P1Surv >= r2P2Surv) {
+          verdict.textContent = `${p1Name.toUpperCase()} WINS (TIEBREAKER)`;
+          verdict.className = 'text-2xl md:text-3xl font-extrabold font-cinzel text-red-400 stat-glow my-1';
+          detail.textContent = `Tied 1-1. ${p1Name} had higher winning round survival margin (${r1P1Surv}% vs ${r2P2Surv}%).`;
+        } else {
+          verdict.textContent = `${p2Name.toUpperCase()} WINS (TIEBREAKER)`;
+          verdict.className = 'text-2xl md:text-3xl font-extrabold font-cinzel text-cyan-400 stat-glow my-1';
+          detail.textContent = `Tied 1-1. ${p2Name} had higher winning round survival margin (${r2P2Surv}% vs ${r1P1Surv}%).`;
+        }
+      }
+    }
+
+    // Attach listeners
+    document.getElementById('btn-simulate').addEventListener('click', simulateBattle);
+    document.getElementById('p1-name-input').addEventListener('input', simulateBattle);
+    document.getElementById('p2-name-input').addEventListener('input', simulateBattle);
+
+    ['p1', 'p2'].forEach(p => {
+      ['inf-count', 'inf-tier', 'rng-count', 'rng-tier', 'cav-count', 'cav-tier', 'mon-count', 'mon-tier', 'dragon-lvl', 'dragon-focus'].forEach(id => {
+        const el = document.getElementById(`${p}-${id}`);
+        if (el) {
+          el.addEventListener('input', simulateBattle);
+          el.addEventListener('change', simulateBattle);
+        }
+      });
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      location.reload();
+    });
+
+    // Share full match setup
+    document.getElementById('btn-share-duel').addEventListener('click', () => {
+      const matchState = {
+        p1: { squad: p1Squad, inf: document.getElementById('p1-inf-count').value, rng: document.getElementById('p1-rng-count').value, cav: document.getElementById('p1-cav-count').value, mon: document.getElementById('p1-mon-count').value },
+        p2: { squad: p2Squad, inf: document.getElementById('p2-inf-count').value, rng: document.getElementById('p2-rng-count').value, cav: document.getElementById('p2-cav-count').value, mon: document.getElementById('p2-mon-count').value }
+      };
+      const hash = btoa(JSON.stringify(matchState));
+      window.location.hash = `match=${hash}`;
+      navigator.clipboard.writeText(window.location.href);
+      alert('Match duel link copied to clipboard!');
+    });
+
+    // Hash loader
+    function loadFromHash() {
+      if (window.location.hash.includes('match=')) {
+        try {
+          const raw = window.location.hash.split('match=')[1];
+          const data = JSON.parse(atob(raw));
+          if (data.p1 && data.p1.squad) p1Squad = data.p1.squad;
+          if (data.p2 && data.p2.squad) p2Squad = data.p2.squad;
+        } catch (e) {
+          console.error("Failed to load match hash", e);
+        }
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromHash();
+      renderSquad('p1-captains', p1Squad, 'p1');
+      renderSquad('p2-captains', p2Squad, 'p2');
+      simulateBattle();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
+
