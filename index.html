@@ -50,7 +50,7 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
 
-    <!-- STEP 1: COLOSSEUM UNIT ARSENAL (Guardsmen, Full Specialists & Full Monsters) -->
+    <!-- STEP 1: COLOSSEUM UNIT ARSENAL -->
     <section class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5 shadow-xl space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div>
@@ -58,7 +58,7 @@
             <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-bold font-mono">STEP 1</span>
             <h2 class="font-cinzel text-base md:text-lg font-bold text-amber-300">Eligible Colosseum Units (Guardsmen, Specialists & Monsters)</h2>
           </div>
-          <p class="text-xs text-stone-400 mt-0.5">Arena rules: Mercenaries, Scouts, and Siege units excluded. All 4 unit branches per tier available.</p>
+          <p class="text-xs text-stone-400 mt-0.5">Mercenaries, Scouts, and Siege excluded per arena rules. Select all units you have unlocked.</p>
         </div>
         <div class="flex items-center space-x-3">
           <button type="button" onclick="selectAllUnitsInCurrentCategory(true)" class="text-[11px] px-2.5 py-1 bg-stone-800 hover:bg-stone-700 rounded text-stone-300 border border-stone-700">Check Category</button>
@@ -83,7 +83,7 @@
       <div id="unit-accordion-container" class="space-y-3 pt-2"></div>
     </section>
 
-    <!-- STEP 2: BATTLE STANCE, COMMAND LIMITS & ENEMY INTEL (All 36 Captains Available) -->
+    <!-- STEP 2: BATTLE STANCE, LIMITS & ENEMY SCOUT INTEL (Custom Captains, Stars & Levels) -->
     <section class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5 shadow-xl space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div>
@@ -91,7 +91,7 @@
             <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-bold font-mono">STEP 2</span>
             <h2 class="font-cinzel text-base md:text-lg font-bold text-amber-300">Battle Stance, Command Limits & Opponent Intel</h2>
           </div>
-          <p class="text-xs text-stone-400 mt-0.5">Select your tactical stance, enter march limits, and configure opposing lineup from all 36 captains.</p>
+          <p class="text-xs text-stone-400 mt-0.5">Select your tactical stance, march limits, and configure opposing captains with their Stars and Levels.</p>
         </div>
       </div>
 
@@ -131,65 +131,55 @@
           <h3 class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
             <i data-lucide="eye" class="w-4 h-4 text-red-400"></i> Opponent Arena Intel
           </h3>
-          <label class="flex items-center space-x-2 cursor-pointer text-xs">
-            <input type="checkbox" id="enemy-custom-toggle" class="rounded border-stone-700 text-amber-500 focus:ring-0">
-            <span class="text-stone-300 font-semibold">Custom Opponent Scout Report</span>
-          </label>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="setEnemyPreset('meta')" class="text-[11px] px-2 py-0.5 rounded bg-red-950/60 border border-red-800 text-red-300">Set Meta Enemy</button>
+            <button type="button" onclick="setEnemyPreset('clear')" class="text-[11px] px-2 py-0.5 rounded bg-stone-800 border border-stone-700 text-stone-400">Clear</button>
+          </div>
         </div>
 
-        <div id="enemy-summary-box" class="p-3 bg-stone-950/70 border border-stone-800 rounded-xl text-xs text-stone-400">
-          Currently matching against <b>Standard Arena Meta</b> (Hercules Burst Cleave, Heimdall Frontline Shield, Skadi Turn-1 Freeze, Krakens, and Purifiers). Check "Custom Opponent Scout Report" to specify exact enemy commanders.
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
+            <label class="block text-stone-400 mb-1">Enemy Estimated Leadership</label>
+            <input type="number" id="enemy-leadership" placeholder="e.g. 240000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-cyan-300">
+          </div>
+          <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
+            <label class="block text-stone-400 mb-1">Enemy Estimated Dominance</label>
+            <input type="number" id="enemy-dominance" placeholder="e.g. 3000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-red-300">
+          </div>
+          <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
+            <label class="block text-stone-400 mb-1">Enemy Primary Composition</label>
+            <select id="enemy-archetype" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-stone-200">
+              <option value="heavy_burst">Heavy Physical Burst (Hercules + Ramses Cleave)</option>
+              <option value="balanced">Balanced (Spearmen Meatshield + Ranged + Monsters)</option>
+              <option value="monster_rush">Monster / Aerial Rush (Krakens + Phoenixes + Griffins)</option>
+              <option value="attrition_tank">Ironclad Attrition (Heimdall + Leonidas + Cleo Sustain)</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Detailed Enemy Form -->
-        <div id="enemy-detail-panel" class="hidden space-y-4 pt-1">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
-              <label class="block text-stone-400 mb-1">Enemy Estimated Leadership</label>
-              <input type="number" id="enemy-leadership" placeholder="e.g. 240000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-cyan-300">
-            </div>
-            <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
-              <label class="block text-stone-400 mb-1">Enemy Estimated Dominance</label>
-              <input type="number" id="enemy-dominance" placeholder="e.g. 3000" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 font-mono text-red-300">
-            </div>
-            <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800">
-              <label class="block text-stone-400 mb-1">Enemy Primary Composition</label>
-              <select id="enemy-archetype" class="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-stone-200">
-                <option value="heavy_burst">Heavy Physical Burst (Hercules + Ramses Cleave)</option>
-                <option value="balanced">Balanced (Spearmen Meatshield + Ranged + Monsters)</option>
-                <option value="monster_rush">Monster / Aerial Rush (Krakens + Phoenixes + Griffins)</option>
-                <option value="attrition_tank">Ironclad Attrition (Heimdall + Leonidas + Cleo Sustain)</option>
-              </select>
-            </div>
+        <!-- 5 OPPONENT CAPTAINS SLOTS (SELECT CAPTAIN, STARS & LEVEL) -->
+        <div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-200 font-semibold">Opponent Top Captain Lineup (Top 5 Slots):</span>
+            <span class="text-[11px] text-stone-400 font-mono">Select captain, star tier, and level</span>
           </div>
 
-          <!-- ALL 36 CAPTAINS SELECTOR FOR ENEMY -->
-          <div class="bg-stone-950/80 p-3.5 rounded-lg border border-stone-800 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center space-x-2">
-                <span class="text-xs text-stone-200 font-semibold">Select Opposing Top Captains (Up to 5):</span>
-                <span id="enemy-selected-counter" class="text-[11px] font-mono font-bold text-red-400 px-1.5 py-0.5 rounded bg-red-950/50 border border-red-900">0 / 5 selected</span>
-              </div>
-              <input type="text" id="enemy-search-filter" placeholder="Quick find captain..." oninput="filterEnemyCaptainDisplay()" class="bg-stone-900 border border-stone-700 rounded px-2 py-1 text-xs text-stone-200 focus:outline-none focus:border-red-500 w-44">
-            </div>
-            
-            <div id="enemy-captains-selector" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 text-xs max-h-64 overflow-y-auto pr-1">
-              <!-- Dynamically populated via JS with ALL 36 captains -->
-            </div>
+          <div id="enemy-slots-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
+            <!-- Dynamically populated via JS -->
           </div>
         </div>
       </div>
     </section>
 
-    <!-- STEP 3: PLAYER CAPTAIN INVENTORY (All 36 Captains - Default 100% UNCHECKED) -->
+    <!-- STEP 3: PLAYER CAPTAIN INVENTORY (Curated 24 Total Battle Heroes - 100% UNCHECKED BY DEFAULT) -->
     <section class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5 shadow-xl space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div>
           <div class="flex items-center space-x-2">
             <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-bold font-mono">STEP 3</span>
-            <h2 class="font-cinzel text-base md:text-lg font-bold text-amber-300">Your Captain Inventory (All 36 Total Battle Heroes)</h2>
+            <h2 class="font-cinzel text-base md:text-lg font-bold text-amber-300">Your Captain Inventory (Curated 24 Total Battle Heroes)</h2>
           </div>
-          <p class="text-xs text-stone-400 mt-0.5">Check only the captains you actually own. Configure their exact Stars and Levels.</p>
+          <p class="text-xs text-stone-400 mt-0.5">Check only the captains you actually own. Adjust their Stars and Levels.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <span id="captains-owned-badge" class="text-xs font-mono text-stone-400 font-bold px-2 py-1 bg-stone-950 rounded border border-stone-800">0 Captains Owned</span>
@@ -199,29 +189,28 @@
         </div>
       </div>
 
-      <!-- Search & Tier Filter Bar -->
+      <!-- Search & Category Filter Bar -->
       <div class="flex flex-wrap items-center justify-between gap-3 bg-stone-950/70 p-3 rounded-xl border border-stone-800">
         <div class="relative flex-1 min-w-[200px]">
           <i data-lucide="search" class="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5"></i>
-          <input type="text" id="captain-search-input" placeholder="Search captain name or role..." oninput="filterCaptainsDisplay()" class="w-full bg-stone-900 border border-stone-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500">
+          <input type="text" id="captain-search-input" placeholder="Search captain name or bonus..." oninput="filterCaptainsDisplay()" class="w-full bg-stone-900 border border-stone-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500">
         </div>
         <div class="flex items-center space-x-1.5 text-xs">
-          <span class="text-stone-400 text-[11px] mr-1">Tier:</span>
-          <button type="button" onclick="setCaptainTierFilter('all')" id="filter-tier-all" class="px-2 py-1 rounded bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold">All (36)</button>
-          <button type="button" onclick="setCaptainTierFilter('S')" id="filter-tier-S" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">S</button>
-          <button type="button" onclick="setCaptainTierFilter('A')" id="filter-tier-A" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">A</button>
-          <button type="button" onclick="setCaptainTierFilter('B')" id="filter-tier-B" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">B</button>
-          <button type="button" onclick="setCaptainTierFilter('C')" id="filter-tier-C" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">C</button>
+          <span class="text-stone-400 text-[11px] mr-1">Rarity:</span>
+          <button type="button" onclick="setCaptainTierFilter('all')" id="filter-tier-all" class="px-2 py-1 rounded bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold">All (24)</button>
+          <button type="button" onclick="setCaptainTierFilter('Mythic')" id="filter-tier-Mythic" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">Mythic (4)</button>
+          <button type="button" onclick="setCaptainTierFilter('Legendary')" id="filter-tier-Legendary" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">Legendary (9)</button>
+          <button type="button" onclick="setCaptainTierFilter('Epic')" id="filter-tier-Epic" class="px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]">Epic/Rare (11)</button>
         </div>
       </div>
 
       <!-- Captains Grid Container -->
       <div id="captain-pool-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-1"></div>
 
-      <!-- NEW CONFIRMATION BUTTON TO PROCEED TO STEP 4 -->
+      <!-- CONFIRMATION BUTTON TO RUN STEP 4 -->
       <div class="pt-3 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-stone-950/60 p-4 rounded-xl">
         <div class="text-xs text-stone-400">
-          Once your owned captains are checked and configured, click to build and evaluate your counter squad.
+          Ready? Click to confirm your checked captains, build the optimal counter squad, and view the battle plan.
         </div>
         <button type="button" id="btn-confirm-step3" onclick="confirmAndRunStep4()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-950 transition">
           <i data-lucide="sparkles" class="w-4 h-4 fill-current"></i>
@@ -230,7 +219,7 @@
       </div>
     </section>
 
-    <!-- STEP 4: AUTOMATED COUNTER-SQUAD & SYNERGY ENGINE (With Manual Override) -->
+    <!-- STEP 4: AUTOMATED COUNTER-SQUAD & SYNERGY ENGINE (Editable Slots) -->
     <section id="step-4-section" class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5 shadow-xl space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div>
@@ -238,7 +227,7 @@
             <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-bold font-mono">STEP 4</span>
             <h2 class="font-cinzel text-base md:text-lg font-bold text-amber-300">Automated Counter-Squad & Synergy Engine</h2>
           </div>
-          <p class="text-xs text-stone-400 mt-0.5">The engine automatically picks your best counters against the opponent. You can manually override any slot.</p>
+          <p class="text-xs text-stone-400 mt-0.5">The engine automatically selects your best counters against the opponent. You can manually override any slot.</p>
         </div>
         <span id="selected-synergy-score" class="text-xs font-mono font-bold text-amber-400">Synergy Score: 0 / 100</span>
       </div>
@@ -256,7 +245,7 @@
       </div>
     </section>
 
-    <!-- STEP 5: MARCH DEPLOYMENT & 2-ROUND TIEBREAKER BATTLE PLAN -->
+    <!-- STEP 5: MARCH DEPLOYMENT (GUARDSMEN & MONSTERS) & 2-ROUND TIEBREAKER BATTLE PLAN -->
     <section id="battle-plan-section" class="bg-stone-900/90 border border-amber-600/40 rounded-2xl p-5 shadow-2xl space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div class="flex items-center space-x-2">
@@ -314,15 +303,28 @@
         </div>
       </div>
 
-      <!-- SUGGESTED TROOP DEPLOYMENT TABLE -->
+      <!-- SUGGESTED TROOP DEPLOYMENT: GUARDSMEN & SPECIALISTS -->
       <div class="space-y-3">
-        <h3 class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="list-ordered" class="w-4 h-4 text-amber-400"></i> Suggested Army Deployment (Strict Point Budgeting)
+        <h3 class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i> Guardsmen & Specialists March (Leadership Allocation)</span>
+          <span id="ldr-used-badge" class="font-mono text-[11px] text-emerald-400">0 LDR allocated</span>
         </h3>
-        
-        <div id="suggested-troops-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div class="col-span-full p-4 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-stone-500">
-            Select your unlocked units in Step 1, enter command caps in Step 2, and pick your owned captains in Step 3.
+        <div id="suggested-guards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="col-span-full p-3 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-stone-500">
+            Check Guardsmen or Specialists in Step 1 and enter Leadership in Step 2.
+          </div>
+        </div>
+      </div>
+
+      <!-- SUGGESTED TROOP DEPLOYMENT: MONSTERS MARCH -->
+      <div class="space-y-3 pt-2">
+        <h3 class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-4 h-4 text-red-400"></i> Monsters March (Dominance Allocation)</span>
+          <span id="dom-used-badge" class="font-mono text-[11px] text-red-400">0 DOM allocated</span>
+        </h3>
+        <div id="suggested-monsters-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="col-span-full p-3 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-stone-500">
+            Check Monsters in Step 1 and enter Dominance in Step 2.
           </div>
         </div>
       </div>
@@ -342,7 +344,7 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // 1. FULL COLOSSEUM UNIT DATABASE (Guardsmen, ALL Specialists branches, ALL Monsters)
+    // 1. FULL COLOSSEUM UNIT DATABASE
     const UNIT_DB = {
       guardsmen: {
         G1: [{ id: 'g1_spear', name: 'Spearman', cost: 1, role: 'meatshield' }, { id: 'g1_arch', name: 'Archer', cost: 1, role: 'ranged' }, { id: 'g1_ride', name: 'Rider', cost: 2, role: 'cavalry' }],
@@ -379,51 +381,37 @@
       }
     };
 
-    // 2. COMPLETE ROSTER OF ALL 36 TOTAL BATTLE CAPTAINS
+    // 2. CURATED 24 TOTAL BATTLE CAPTAINS (STRICT USER SPECIFICATION)
     const ALL_CAPTAINS = [
-      // TIER S
-      { id: 'heimdall', name: 'Heimdall', defaultSkill: 'shield', role: 'Frontline Shield / Bastion', tier: 'S', baseSpeed: 95, counterRole: 'heavy_burst' },
-      { id: 'hercules', name: 'Hercules', defaultSkill: 'burst', role: 'Physical Burst Cleave', tier: 'S', baseSpeed: 88, counterRole: 'attrition_tank' },
-      { id: 'cleopatra', name: 'Cleopatra', defaultSkill: 'support', role: 'Team Sustain / Resurrect', tier: 'S', baseSpeed: 82, counterRole: 'attrition_tank' },
-      { id: 'skadi', name: 'Skadi', defaultSkill: 'cc', role: 'CC Freeze / Speed Control', tier: 'S', baseSpeed: 104, counterRole: 'heavy_burst' },
-      
-      // TIER A
-      { id: 'beowulf', name: 'Beowulf', defaultSkill: 'burst', role: 'Physical Cleave & Bruiser', tier: 'A', baseSpeed: 85, counterRole: 'balanced' },
-      { id: 'leonidas', name: 'Leonidas', defaultSkill: 'shield', role: 'Spearmen Armor & Defense', tier: 'A', baseSpeed: 84, counterRole: 'monster_rush' },
-      { id: 'ramses', name: 'Ramses', defaultSkill: 'burst', role: 'Heavy Chariot / Cleave', tier: 'A', baseSpeed: 86, counterRole: 'balanced' },
-      { id: 'artemisia', name: 'Artemisia', defaultSkill: 'burst', role: 'Ranged Marksman Specialist', tier: 'A', baseSpeed: 98, counterRole: 'monster_rush' },
-      { id: 'alexander', name: 'Alexander', defaultSkill: 'burst', role: 'Siege & Offensive Rush', tier: 'A', baseSpeed: 90, counterRole: 'balanced' },
-      { id: 'ayrin', name: 'Ayrin', defaultSkill: 'cc', role: 'Ranged Suppression & Stun', tier: 'A', baseSpeed: 93, counterRole: 'heavy_burst' },
-      { id: 'brunhild', name: 'Brunhild', defaultSkill: 'burst', role: 'Valkyrie Aerial Cleave', tier: 'A', baseSpeed: 92, counterRole: 'monster_rush' },
-      { id: 'roland', name: 'Roland', defaultSkill: 'burst', role: 'Paladin Smite & Valor', tier: 'A', baseSpeed: 87, counterRole: 'attrition_tank' },
-      { id: 'wuzetian', name: 'Wu Zetian', defaultSkill: 'support', role: 'Imperial Morale & Command', tier: 'A', baseSpeed: 84, counterRole: 'balanced' },
-      { id: 'lucius', name: 'Lucius', defaultSkill: 'shield', role: 'Roman Legion Vanguard', tier: 'A', baseSpeed: 86, counterRole: 'heavy_burst' },
-      { id: 'minamoto', name: 'Minamoto', defaultSkill: 'burst', role: 'Swift Cavalry Charge', tier: 'A', baseSpeed: 96, counterRole: 'balanced' },
+      // MYTHIC (4)
+      { id: 'heimdall', name: 'Heimdall', tier: 'Mythic', bonus: 'Army strength bonus', defaultSkill: 'shield', role: 'Frontline Shield', counterRole: 'heavy_burst' },
+      { id: 'skadi', name: 'Skadi', tier: 'Mythic', bonus: "Guardsmen's strength and health bonus", defaultSkill: 'cc', role: 'CC Freeze / Speed Gate', counterRole: 'heavy_burst' },
+      { id: 'beowulf', name: 'Beowulf', tier: 'Mythic', bonus: 'Army strength and health bonus', defaultSkill: 'burst', role: 'Bruiser / Army Cleave', counterRole: 'balanced' },
+      { id: 'hercules', name: 'Hercules', tier: 'Mythic', bonus: 'Strength against epic monsters', defaultSkill: 'burst', role: 'Main Physical Burst', counterRole: 'attrition_tank' },
 
-      // TIER B
-      { id: 'logos', name: 'Logos', defaultSkill: 'cc', role: 'Debuff & Armor Shredder', tier: 'B', baseSpeed: 89, counterRole: 'attrition_tank' },
-      { id: 'ingrid', name: 'Ingrid', defaultSkill: 'support', role: 'Damage Mitigation Shield', tier: 'B', baseSpeed: 80, counterRole: 'heavy_burst' },
-      { id: 'aydae', name: 'Aydae', defaultSkill: 'support', role: 'Team Cleansing & Restoration', tier: 'B', baseSpeed: 81, counterRole: 'attrition_tank' },
-      { id: 'farhad', name: 'Farhad', defaultSkill: 'shield', role: 'Mounted Vanguard Buffer', tier: 'B', baseSpeed: 87, counterRole: 'balanced' },
-      { id: 'dagnor', name: 'Dagnor', defaultSkill: 'shield', role: 'Fortress Defense Bastion', tier: 'B', baseSpeed: 78, counterRole: 'heavy_burst' },
-      { id: 'bernard', name: 'Bernard', defaultSkill: 'shield', role: 'Heavy Infantry Stalwart', tier: 'B', baseSpeed: 82, counterRole: 'monster_rush' },
-      { id: 'tengri', name: 'Tengri', defaultSkill: 'cc', role: 'Steppe Speed & Disruption', tier: 'B', baseSpeed: 96, counterRole: 'heavy_burst' },
-      { id: 'julia', name: 'Julia', defaultSkill: 'support', role: 'Guardian Ward & Blessing', tier: 'B', baseSpeed: 83, counterRole: 'heavy_burst' },
-      { id: 'alrik', name: 'Alrik', defaultSkill: 'shield', role: 'Berserker Battle Wall', tier: 'B', baseSpeed: 79, counterRole: 'monster_rush' },
-      { id: 'amina', name: 'Amina', defaultSkill: 'support', role: 'Desert Oasis Vitality', tier: 'B', baseSpeed: 85, counterRole: 'attrition_tank' },
-      { id: 'anhur', name: 'Anhur', defaultSkill: 'burst', role: 'Slayer of Predators', tier: 'B', baseSpeed: 88, counterRole: 'monster_rush' },
-      { id: 'haakon', name: 'Haakon', defaultSkill: 'shield', role: 'Viking Coastal Bulwark', tier: 'B', baseSpeed: 80, counterRole: 'heavy_burst' },
-      { id: 'hilde', name: 'Hilde', defaultSkill: 'support', role: 'Shieldmaiden Resilience', tier: 'B', baseSpeed: 82, counterRole: 'attrition_tank' },
-      { id: 'snorri', name: 'Snorri', defaultSkill: 'burst', role: 'Rune Hammer Cleave', tier: 'B', baseSpeed: 84, counterRole: 'balanced' },
-      { id: 'zhigang', name: 'Zhi Gang', defaultSkill: 'cc', role: 'Terracotta Wall & Stun', tier: 'B', baseSpeed: 81, counterRole: 'heavy_burst' },
+      // LEGENDARY (9)
+      { id: 'cleopatra', name: 'Cleopatra', tier: 'Legendary', bonus: 'Overall army strength and health bonuses', defaultSkill: 'support', role: 'Team Sustain / Resurrect', counterRole: 'attrition_tank' },
+      { id: 'ramses', name: 'Ramses II', tier: 'Legendary', bonus: 'Overall army strength and health bonuses', defaultSkill: 'burst', role: 'Heavy Cleave / Might', counterRole: 'balanced' },
+      { id: 'amanitore', name: 'Amanitore', tier: 'Legendary', bonus: 'Army strength and health in group marches/raids', defaultSkill: 'burst', role: 'Group Raid Vanguard', counterRole: 'heavy_burst' },
+      { id: 'helen', name: 'Helen', tier: 'Legendary', bonus: 'Food production and troop training speed bonus', defaultSkill: 'support', role: 'Logistics & Support', counterRole: 'attrition_tank' },
+      { id: 'leonidas', name: 'Leonidas', tier: 'Legendary', bonus: 'Melee strength and health bonus', defaultSkill: 'shield', role: 'Melee Specialist Defense', counterRole: 'monster_rush' },
+      { id: 'minamoto', name: 'Minamoto', tier: 'Legendary', bonus: 'Ranged strength and health bonus', defaultSkill: 'burst', role: 'Ranged Specialist Offense', counterRole: 'balanced' },
+      { id: 'wuzetian', name: 'Wu Zetian', tier: 'Legendary', bonus: 'Flying strength and health bonus', defaultSkill: 'support', role: 'Aerial Specialist Command', counterRole: 'balanced' },
+      { id: 'alexander', name: 'Alexander', tier: 'Legendary', bonus: 'Mounted strength and health bonus', defaultSkill: 'burst', role: 'Cavalry Specialist Rush', counterRole: 'balanced' },
+      { id: 'ingrid', name: 'Ingrid', tier: 'Legendary', bonus: 'PvP combat and monster strength bonus', defaultSkill: 'support', role: 'PvP & Anti-Monster Ward', counterRole: 'monster_rush' },
 
-      // TIER C
-      { id: 'carter', name: 'Carter', defaultSkill: 'support', role: 'Siege Artillery Buffer', tier: 'C', baseSpeed: 75, counterRole: 'attrition_tank' },
-      { id: 'dustan', name: 'Dustan', defaultSkill: 'shield', role: 'Outpost Defender', tier: 'C', baseSpeed: 74, counterRole: 'balanced' },
-      { id: 'helen', name: 'Helen', defaultSkill: 'support', role: 'Diplomatic Inspiration', tier: 'C', baseSpeed: 76, counterRole: 'attrition_tank' },
-      { id: 'thomas', name: 'Thomas', defaultSkill: 'burst', role: 'Crossbow Retainer', tier: 'C', baseSpeed: 78, counterRole: 'monster_rush' },
-      { id: 'yeho', name: 'Ye Ho', defaultSkill: 'cc', role: 'Caltrop Disruption', tier: 'C', baseSpeed: 80, counterRole: 'heavy_burst' },
-      { id: 'archimedes', name: 'Archimedes', defaultSkill: 'support', role: 'Engineering Tactician', tier: 'C', baseSpeed: 72, counterRole: 'attrition_tank' }
+      // EPIC / RARE & PROGRESSION (11)
+      { id: 'aydae', name: 'Aydae', tier: 'Epic', bonus: 'Guardsmen strength bonus', defaultSkill: 'support', role: 'Guardsmen Buffer / Sustain', counterRole: 'attrition_tank' },
+      { id: 'logos', name: 'Logos', tier: 'Epic', bonus: 'Swordsmen and siege bonus', defaultSkill: 'cc', role: 'Swordsmen Specialist / Debuff', counterRole: 'heavy_burst' },
+      { id: 'tengel', name: 'Tengel', tier: 'Epic', bonus: 'March speed / range bonus', defaultSkill: 'burst', role: 'Rapid March / Flank', counterRole: 'heavy_burst' },
+      { id: 'carter', name: 'Carter', tier: 'Epic', bonus: 'Crypt efficiency / tar', defaultSkill: 'support', role: 'Siege & Crypt Support', counterRole: 'attrition_tank' },
+      { id: 'indiane', name: 'Indiane', tier: 'Epic', bonus: 'Crypt efficiency / tar', defaultSkill: 'support', role: 'Crypt Scout / Resource', counterRole: 'attrition_tank' },
+      { id: 'aurora', name: 'Aurora', tier: 'Epic', bonus: 'Construction speed bonus', defaultSkill: 'support', role: 'City Construction Support', counterRole: 'balanced' },
+      { id: 'farhad', name: 'Farhad', tier: 'Epic', bonus: 'Research speed bonus', defaultSkill: 'shield', role: 'Research & Mounted Defense', counterRole: 'balanced' },
+      { id: 'stror', name: 'Stror', tier: 'Epic', bonus: 'Gathering & march capacity', defaultSkill: 'shield', role: 'Logistics & Cargo Guard', counterRole: 'balanced' },
+      { id: 'dustan', name: 'Dustan', tier: 'Epic', bonus: 'Conquest points bonus', defaultSkill: 'shield', role: 'Conquest Defense', counterRole: 'balanced' },
+      { id: 'doria', name: 'Doria', tier: 'Epic', bonus: 'Valor points bonus', defaultSkill: 'burst', role: 'Valor Battle Strike', counterRole: 'balanced' },
+      { id: 'proscope', name: 'Proscope', tier: 'Epic', bonus: 'Scout stats & espionage', defaultSkill: 'cc', role: 'Tactical Recon / Disruption', counterRole: 'heavy_burst' }
     ];
 
     const GEAR_SETS = [
@@ -445,19 +433,26 @@
     let selectedPlayerUnits = new Set();
     let currentTierFilter = 'all';
     let currentSearchTerm = '';
-    let enemySearchTerm = '';
     
-    // 100% UNCHECKED BY DEFAULT
+    // PLAYER POOL: 100% UNCHECKED BY DEFAULT
     let playerCaptainsPool = {};
     ALL_CAPTAINS.forEach(c => {
       playerCaptainsPool[c.id] = {
         owned: false,
-        stars: c.tier === 'S' ? 5 : (c.tier === 'A' ? 4 : 3),
-        level: c.tier === 'S' ? 450 : 400
+        stars: c.tier === 'Mythic' ? 5 : (c.tier === 'Legendary' ? 4 : 3),
+        level: c.tier === 'Mythic' ? 450 : 400
       };
     });
 
-    let enemySelectedCaptains = [];
+    // ENEMY SLOTS STATE (5 SLOTS CONFIGURABLE WITH STARS & LEVEL)
+    let enemySlots = [
+      { captainId: 'skadi', stars: 5, level: 450 },
+      { captainId: 'hercules', stars: 5, level: 460 },
+      { captainId: 'heimdall', stars: 5, level: 440 },
+      { captainId: 'cleopatra', stars: 4, level: 420 },
+      { captainId: 'ramses', stars: 4, level: 420 }
+    ];
+
     let currentSquad = [];
 
     // STEP 1 FUNCTIONS
@@ -567,62 +562,67 @@
       }
     };
 
-    document.getElementById('enemy-custom-toggle').addEventListener('change', (e) => {
-      const panel = document.getElementById('enemy-detail-panel');
-      const box = document.getElementById('enemy-summary-box');
-      if (e.target.checked) {
-        panel.classList.remove('hidden');
-        box.classList.add('hidden');
-      } else {
-        panel.classList.add('hidden');
-        box.classList.remove('hidden');
-      }
-    });
-
-    // RENDER ALL 36 CAPTAINS FOR OPPONENT
-    function renderEnemyCaptainsSelector() {
-      const container = document.getElementById('enemy-captains-selector');
+    function renderEnemySlots() {
+      const container = document.getElementById('enemy-slots-grid');
       container.innerHTML = '';
 
-      ALL_CAPTAINS.forEach(c => {
-        if (enemySearchTerm) {
-          const match = c.name.toLowerCase().includes(enemySearchTerm) || c.role.toLowerCase().includes(enemySearchTerm);
-          if (!match) return;
-        }
+      enemySlots.forEach((slot, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-stone-900/90 p-2.5 rounded-lg border border-red-900/40 space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="w-4 h-4 rounded-full bg-red-950 text-red-400 font-mono text-[10px] flex items-center justify-center font-bold">
+              ${idx + 1}
+            </span>
+            <select class="bg-stone-950 border border-stone-700 text-red-300 font-semibold rounded px-1.5 py-0.5 text-xs w-28 truncate" onchange="enemySlots[${idx}].captainId = this.value">
+              <option value="none">-- None --</option>
+              ${ALL_CAPTAINS.map(c => `
+                <option value="${c.id}" ${c.id === slot.captainId ? 'selected' : ''}>${c.name} [${c.tier}]</option>
+              `).join('')}
+            </select>
+          </div>
 
-        const isChecked = enemySelectedCaptains.includes(c.id);
-        const lbl = document.createElement('label');
-        lbl.className = `flex items-center space-x-1.5 p-2 rounded-lg border text-[11px] cursor-pointer transition ${isChecked ? 'bg-red-950/60 border-red-700 text-red-200' : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700'}`;
-        lbl.innerHTML = `
-          <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} onchange="toggleEnemyCaptain('${c.id}')" class="rounded border-stone-700 text-red-500 focus:ring-0">
-          <span class="truncate font-medium">${c.name}</span>
-          <span class="text-[9px] font-mono px-1 rounded bg-stone-950 text-stone-400 ml-auto">${c.tier}</span>
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-stone-400">Stars:</span>
+            <select class="bg-stone-950 border border-stone-700 text-amber-400 font-bold rounded px-1 text-[11px]" onchange="enemySlots[${idx}].stars = parseInt(this.value)">
+              ${[1,2,3,4,5,6,7].map(s => `<option value="${s}" ${s === slot.stars ? 'selected' : ''}>${s}★</option>`).join('')}
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] text-stone-400 mb-0.5">
+              <span>Lvl:</span>
+              <span class="font-mono text-stone-200" id="enemy-lvl-val-${idx}">${slot.level}</span>
+            </div>
+            <input type="range" min="1" max="500" value="${slot.level}" class="w-full accent-red-500" oninput="document.getElementById('enemy-lvl-val-${idx}').innerText = this.value; enemySlots[${idx}].level = parseInt(this.value);">
+          </div>
         `;
-        container.appendChild(lbl);
+        container.appendChild(card);
       });
-
-      document.getElementById('enemy-selected-counter').textContent = `${enemySelectedCaptains.length} / 5 selected`;
     }
 
-    window.toggleEnemyCaptain = function(capId) {
-      if (enemySelectedCaptains.includes(capId)) {
-        enemySelectedCaptains = enemySelectedCaptains.filter(id => id !== capId);
+    window.setEnemyPreset = function(type) {
+      if (type === 'meta') {
+        enemySlots = [
+          { captainId: 'skadi', stars: 5, level: 450 },
+          { captainId: 'hercules', stars: 5, level: 460 },
+          { captainId: 'heimdall', stars: 5, level: 440 },
+          { captainId: 'cleopatra', stars: 4, level: 420 },
+          { captainId: 'ramses', stars: 4, level: 420 }
+        ];
       } else {
-        if (enemySelectedCaptains.length >= 5) {
-          alert('You can select a maximum of 5 top captains for the opposing team.');
-          return;
-        }
-        enemySelectedCaptains.push(capId);
+        enemySlots = [
+          { captainId: 'none', stars: 1, level: 100 },
+          { captainId: 'none', stars: 1, level: 100 },
+          { captainId: 'none', stars: 1, level: 100 },
+          { captainId: 'none', stars: 1, level: 100 },
+          { captainId: 'none', stars: 1, level: 100 }
+        ];
       }
-      renderEnemyCaptainsSelector();
+      renderEnemySlots();
     };
 
-    window.filterEnemyCaptainDisplay = function() {
-      enemySearchTerm = document.getElementById('enemy-search-filter').value.trim().toLowerCase();
-      renderEnemyCaptainsSelector();
-    };
-
-    // STEP 3: CAPTAIN INVENTORY POOL
+    // STEP 3: CAPTAIN INVENTORY POOL (24 Curated Heroes)
     function renderCaptainPool() {
       const container = document.getElementById('captain-pool-grid');
       container.innerHTML = '';
@@ -635,7 +635,7 @@
 
         if (currentTierFilter !== 'all' && c.tier !== currentTierFilter) return;
         if (currentSearchTerm) {
-          const match = c.name.toLowerCase().includes(currentSearchTerm) || c.role.toLowerCase().includes(currentSearchTerm);
+          const match = c.name.toLowerCase().includes(currentSearchTerm) || c.bonus.toLowerCase().includes(currentSearchTerm);
           if (!match) return;
         }
 
@@ -643,15 +643,19 @@
         card.className = `p-3 rounded-xl border transition ${poolData.owned ? 'bg-stone-950/90 border-amber-500/50 shadow-md' : 'bg-stone-950/40 border-stone-800/80 opacity-60'}`;
         card.id = `cap-card-${c.id}`;
 
+        const tierBadgeClass = c.tier === 'Mythic' 
+          ? 'bg-amber-950 text-amber-400 border border-amber-800' 
+          : (c.tier === 'Legendary' ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-blue-950 text-blue-300 border border-blue-800');
+
         card.innerHTML = `
-          <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center justify-between mb-1">
             <label class="flex items-center space-x-2 cursor-pointer">
               <input type="checkbox" ${poolData.owned ? 'checked' : ''} onchange="toggleCaptainOwned('${c.id}', this.checked)" class="rounded border-stone-700 text-amber-500 focus:ring-0">
               <span class="font-bold text-xs ${poolData.owned ? 'text-amber-300' : 'text-stone-400'}">${c.name}</span>
             </label>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${c.tier === 'S' ? 'bg-amber-950 text-amber-400 border border-amber-800' : (c.tier === 'A' ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-stone-800 text-stone-400')}">Tier ${c.tier}</span>
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${tierBadgeClass}">${c.tier}</span>
           </div>
-          <span class="text-[10px] text-stone-400 block mb-2 truncate">${c.role}</span>
+          <span class="text-[10px] text-stone-400 block mb-2 leading-tight">${c.bonus}</span>
 
           <div class="grid grid-cols-2 gap-2 text-[11px] ${poolData.owned ? '' : 'pointer-events-none opacity-40'}">
             <div>
@@ -696,7 +700,7 @@
         playerCaptainsPool[c.id].owned = false;
       });
       if (preset === 'meta') {
-        ['heimdall', 'hercules', 'cleopatra', 'skadi', 'beowulf'].forEach(id => {
+        ['heimdall', 'skadi', 'beowulf', 'hercules', 'cleopatra'].forEach(id => {
           if (playerCaptainsPool[id]) playerCaptainsPool[id].owned = true;
         });
       }
@@ -705,7 +709,7 @@
 
     window.setCaptainTierFilter = function(tier) {
       currentTierFilter = tier;
-      ['all', 'S', 'A', 'B', 'C'].forEach(t => {
+      ['all', 'Mythic', 'Legendary', 'Epic'].forEach(t => {
         const btn = document.getElementById(`filter-tier-${t}`);
         if (t === tier) {
           btn.className = 'px-2 py-1 rounded bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold';
@@ -721,7 +725,7 @@
       renderCaptainPool();
     };
 
-    // CONFIRM BUTTON LOGIC FOR STEP 3
+    // STEP 3 CONFIRMATION BUTTON ACTION
     window.confirmAndRunStep4 = function() {
       const ownedCount = Object.values(playerCaptainsPool).filter(p => p.owned).length;
       if (ownedCount === 0) {
@@ -733,7 +737,6 @@
       renderSquadInterface();
       calculateBattleSimulation();
 
-      // Smooth scroll to Step 4
       const step4 = document.getElementById('step-4-section');
       if (step4) {
         step4.scrollIntoView({ behavior: 'smooth' });
@@ -751,18 +754,18 @@
         const data = playerCaptainsPool[c.id];
         let score = (data.level * 1.0) + (data.stars * 35);
 
-        if (c.tier === 'S') score += 120;
-        if (c.tier === 'A') score += 70;
-        if (c.tier === 'B') score += 30;
+        if (c.tier === 'Mythic') score += 140;
+        if (c.tier === 'Legendary') score += 80;
+        if (c.tier === 'Epic') score += 30;
 
         if (c.counterRole === enemyArchetype) score += 150;
 
         if (battleStance === 'offense') {
-          if (c.id === 'skadi') score += 140;
-          if (c.id === 'hercules' || c.id === 'artemisia' || c.id === 'ramses') score += 120;
+          if (c.id === 'skadi') score += 150;
+          if (c.id === 'hercules' || c.id === 'ramses' || c.id === 'beowulf') score += 120;
         } else {
           if (c.id === 'heimdall') score += 160;
-          if (c.id === 'leonidas' || c.id === 'lucius') score += 120;
+          if (c.id === 'leonidas' || c.id === 'ingrid') score += 120;
           if (c.id === 'cleopatra') score += 110;
         }
 
@@ -806,20 +809,20 @@
         tags.push('Heimdall + Hercules (Anchor Counter)');
       }
       if (activeIds.includes('skadi')) {
-        synergyScore += 12;
+        synergyScore += 14;
         tags.push('Skadi Turn-1 Freeze Priority');
       }
-      if (activeIds.includes('cleopatra') && (activeIds.includes('hercules') || activeIds.includes('beowulf'))) {
-        synergyScore += 10;
+      if (activeIds.includes('cleopatra') && (activeIds.includes('hercules') || activeIds.includes('beowulf') || activeIds.includes('ramses'))) {
+        synergyScore += 12;
         tags.push('Cleopatra Sustain Core');
       }
       if (activeIds.includes('leonidas')) {
-        synergyScore += 8;
-        tags.push('Leonidas Phalanx Armor');
+        synergyScore += 10;
+        tags.push('Leonidas Melee Phalanx');
       }
-      if (activeIds.includes('artemisia')) {
-        synergyScore += 8;
-        tags.push('Artemisia Ranged Piercing');
+      if (activeIds.includes('ingrid')) {
+        synergyScore += 10;
+        tags.push('Ingrid PvP & Anti-Monster Ward');
       }
 
       synergyScore = Math.min(100, synergyScore);
@@ -891,7 +894,7 @@
       }
     };
 
-    // STEP 5: MARCH ALLOCATION & COMBAT SIMULATOR
+    // STEP 5: MARCH ALLOCATION (GUARDS & MONSTERS) & COMBAT SIMULATOR
     document.getElementById('btn-calc').addEventListener('click', () => {
       confirmAndRunStep4();
     });
@@ -904,6 +907,7 @@
         return;
       }
 
+      // Collect checked units from Step 1
       const chosenUnits = [];
       ['guardsmen', 'specialists', 'monsters'].forEach(cat => {
         Object.keys(UNIT_DB[cat]).forEach(tier => {
@@ -915,10 +919,10 @@
         });
       });
 
-      const allocation = [];
+      // 1. ALLOCATE GUARDSMEN & SPECIALISTS (LEADERSHIP)
+      const guardsAllocation = [];
       let meatshieldAllocatedPoints = 0;
       let totalLdrPointsUsed = 0;
-
       const meatshieldTargetRatio = battleStance === 'offense' ? 0.50 : 0.65;
 
       const chosenGuards = chosenUnits.filter(u => u.category === 'guardsmen' || u.category === 'specialists');
@@ -933,7 +937,7 @@
           const ptsPerUnit = Math.floor(meatTargetPoints / meatshieldUnits.length);
           meatshieldUnits.forEach(u => {
             const count = Math.floor(ptsPerUnit / u.cost);
-            allocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
+            guardsAllocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
             meatshieldAllocatedPoints += (count * u.cost);
             totalLdrPointsUsed += (count * u.cost);
           });
@@ -943,30 +947,22 @@
           const ptsPerUnit = Math.floor(backlineTargetPoints / backlineUnits.length);
           backlineUnits.forEach(u => {
             const count = Math.floor(ptsPerUnit / u.cost);
-            allocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
+            guardsAllocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
             totalLdrPointsUsed += (count * u.cost);
           });
         }
       }
 
-      const chosenMonsters = chosenUnits.filter(u => u.category === 'monsters');
-      if (dominance > 0 && chosenMonsters.length > 0) {
-        const ptsPerMon = Math.floor(dominance / chosenMonsters.length);
-        chosenMonsters.forEach(m => {
-          const count = Math.floor(ptsPerMon / m.cost);
-          allocation.push({ ...m, count, pointsUsed: count * m.cost, pointType: 'DOM' });
-        });
-      }
-
-      const marchContainer = document.getElementById('suggested-troops-container');
-      if (allocation.length === 0) {
-        marchContainer.innerHTML = `
-          <div class="col-span-full p-4 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-amber-400">
-            No units checked in Step 1. Please go back to Step 1 and check the specific units you own.
+      // RENDER GUARDSMEN TABLE
+      const guardsContainer = document.getElementById('suggested-guards-container');
+      if (guardsAllocation.length === 0) {
+        guardsContainer.innerHTML = `
+          <div class="col-span-full p-3 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-amber-400">
+            No Guardsmen or Specialists checked in Step 1.
           </div>
         `;
       } else {
-        marchContainer.innerHTML = allocation.map(a => `
+        guardsContainer.innerHTML = guardsAllocation.map(a => `
           <div class="bg-stone-950/80 p-3 rounded-xl border border-stone-800 flex flex-col justify-between space-y-2">
             <div class="flex justify-between items-start">
               <div>
@@ -974,28 +970,77 @@
                 <span class="text-[10px] text-stone-400 uppercase font-mono">${a.tier} &bull; ${a.role}</span>
               </div>
               <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-900 border border-stone-700 text-amber-400">
-                ${a.cost} ${a.pointType} ea
+                ${a.cost} LDR ea
               </span>
             </div>
             <div class="pt-2 border-t border-stone-900 flex justify-between items-baseline">
               <span class="text-xs text-stone-400">Deploy:</span>
               <div class="text-right">
                 <span class="text-sm font-bold text-emerald-400 font-mono">${a.count.toLocaleString()}</span>
-                <span class="text-[10px] text-stone-500 block font-mono">(${a.pointsUsed.toLocaleString()} ${a.pointType})</span>
+                <span class="text-[10px] text-stone-500 block font-mono">(${a.pointsUsed.toLocaleString()} LDR)</span>
               </div>
             </div>
           </div>
         `).join('');
       }
+      document.getElementById('ldr-used-badge').textContent = `${totalLdrPointsUsed.toLocaleString()} / ${leadership.toLocaleString()} LDR allocated`;
 
-      // Simulation math
+      // 2. ALLOCATE MONSTERS (DOMINANCE)
+      const monstersAllocation = [];
+      let totalDomPointsUsed = 0;
+      const chosenMonsters = chosenUnits.filter(u => u.category === 'monsters');
+
+      if (dominance > 0 && chosenMonsters.length > 0) {
+        const ptsPerMon = Math.floor(dominance / chosenMonsters.length);
+        chosenMonsters.forEach(m => {
+          const count = Math.floor(ptsPerMon / m.cost);
+          monstersAllocation.push({ ...m, count, pointsUsed: count * m.cost, pointType: 'DOM' });
+          totalDomPointsUsed += (count * m.cost);
+        });
+      }
+
+      // RENDER MONSTERS TABLE
+      const monstersContainer = document.getElementById('suggested-monsters-container');
+      if (monstersAllocation.length === 0) {
+        monstersContainer.innerHTML = `
+          <div class="col-span-full p-3 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-amber-400">
+            No Monsters checked in Step 1 or Dominance cap is 0. Check your beasts in Step 1 to deploy monsters!
+          </div>
+        `;
+      } else {
+        monstersContainer.innerHTML = monstersAllocation.map(m => `
+          <div class="bg-stone-950/80 p-3 rounded-xl border border-red-950/50 flex flex-col justify-between space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xs font-bold text-stone-200 block">${m.name}</span>
+                <span class="text-[10px] text-stone-400 uppercase font-mono">${m.tier} &bull; Beast</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-900 border border-red-900 text-red-400">
+                ${m.cost} DOM ea
+              </span>
+            </div>
+            <div class="pt-2 border-t border-stone-900 flex justify-between items-baseline">
+              <span class="text-xs text-stone-400">Deploy:</span>
+              <div class="text-right">
+                <span class="text-sm font-bold text-red-400 font-mono">${m.count.toLocaleString()} beasts</span>
+                <span class="text-[10px] text-stone-500 block font-mono">(${m.pointsUsed.toLocaleString()} DOM)</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+      document.getElementById('dom-used-badge').textContent = `${totalDomPointsUsed.toLocaleString()} / ${dominance.toLocaleString()} DOM allocated`;
+
+      // 3. COMBAT SIMULATION & OFFICIAL TIEBREAKER
       const meatshieldRatio = totalLdrPointsUsed > 0 ? Math.round((meatshieldAllocatedPoints / totalLdrPointsUsed) * 100) : 0;
       
       const p1HasSkadi = currentSquad.some(s => s.captainId === 'skadi');
       const p1SkadiLevel = p1HasSkadi ? (playerCaptainsPool['skadi'].level || 400) : 0;
 
-      const enemyHasSkadi = enemySelectedCaptains.includes('skadi');
-      const enemySkadiLevel = enemyHasSkadi ? 400 : 0;
+      const activeEnemyCaps = enemySlots.filter(s => s.captainId !== 'none');
+      const enemyHasSkadi = activeEnemyCaps.some(s => s.captainId === 'skadi');
+      const enemySkadiSlot = activeEnemyCaps.find(s => s.captainId === 'skadi');
+      const enemySkadiLevel = enemySkadiSlot ? enemySkadiSlot.level : 0;
 
       let speedPenaltyOrBonus = 0;
       if (p1HasSkadi && enemyHasSkadi) {
@@ -1049,15 +1094,13 @@
       notes.push(`• <b>Battle Stance:</b> Configured for <b>${battleStance.toUpperCase()}</b>. Meatshield allocation target set to <b>${Math.round(meatshieldTargetRatio * 100)}%</b>.`);
 
       if (!p1HasSkadi && enemyHasSkadi) {
-        notes.push("• <b>Speed Vulnerability:</b> You do not have Skadi in your active squad. Opposing Skadi claims Turn-1 freeze priority, delaying your first skill casts.");
-      } else if (p1HasSkadi) {
-        notes.push(`• <b>Initiative Gate:</b> Player Skadi (Lv ${p1SkadiLevel}) evaluated for turn denial against opposing commanders.`);
+        notes.push(`• <b>Speed Vulnerability:</b> Opposing team runs Skadi (Lv ${enemySkadiLevel}) while you do not have Skadi. Opponent claims Turn-1 freeze priority.`);
+      } else if (p1HasSkadi && enemyHasSkadi) {
+        notes.push(`• <b>Skadi Speed Contest:</b> Player Skadi (Lv ${p1SkadiLevel}) vs Enemy Skadi (Lv ${enemySkadiLevel}) &rarr; ${p1SkadiLevel >= enemySkadiLevel ? 'Player secures first freeze' : 'Enemy outspeeds'}.`);
       }
 
-      if (meatshieldRatio < 45) {
-        notes.push("• <b>Meatshield Alert:</b> Spearmen buffer is below 45%. Backline carries risk taking heavy opposing monster cleaves.");
-      } else {
-        notes.push("• <b>Meatshield Protection:</b> Frontline buffer is sufficiently deep to absorb opening rounds of enemy burst.");
+      if (monstersAllocation.length > 0) {
+        notes.push(`• <b>Monster Cleave:</b> Deployed <b>${monstersAllocation.map(m => m.name).join(', ')}</b> for front-row barrier shredding.`);
       }
 
       notes.push(`• <b>Official Colosseum Tiebreaker Margin:</b> In a 1-1 split, your winning round secures an estimated <b>${r1PlayerSurv}%</b> survival proportion.`);
@@ -1065,7 +1108,7 @@
       document.getElementById('tactical-notes').innerHTML = notes.join('<br>');
     }
 
-    // Clan War Card Clipboard Export
+    // CLAN WAR CARD CLIPBOARD EXPORT
     document.getElementById('btn-copy-card').addEventListener('click', () => {
       const ldr = document.getElementById('player-leadership').value || '0';
       const dom = document.getElementById('player-dominance').value || '0';
@@ -1073,7 +1116,7 @@
       const tiebreaker = document.getElementById('out-tiebreaker').textContent;
       const squadNames = currentSquad.map(c => `${c.name} (${c.stars}★)`).join(', ') || 'No Squad Selected';
 
-      const card = `🛡️ [TOTAL BATTLE COLOSSEUM COUNTER PLAN]\n• Stance: ${battleStance.toUpperCase()}\n• Active 5: ${squadNames}\n• Caps: ${ldr} LDR | ${dom} DOM\n• Projected Match Outcome: ${verdict}\n• Meatshield Ratio: ${document.getElementById('out-meatshield').textContent}\n• 1-1 Survival Tiebreaker Margin: ${tiebreaker}`;
+      const card = `🛡️ [TOTAL BATTLE COLOSSEUM COUNTER PLAN]\n• Stance: ${battleStance.toUpperCase()}\n• Active 5: ${squadNames}\n• Caps: ${ldr} LDR | ${dom} DOM\n• Projected Match Outcome: ${verdict}\n• Meatshield Ratio: ${document.getElementById('out-meatshield').textContent}\n• Official 1-1 Survival Tiebreaker Margin: ${tiebreaker}`;
       navigator.clipboard.writeText(card);
       alert('Colosseum Clan War Card copied to clipboard!');
     });
@@ -1084,10 +1127,11 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       renderAccordion();
+      renderEnemySlots();
       renderCaptainPool();
-      renderEnemyCaptainsSelector();
       lucide.createIcons();
     });
   </script>
 </body>
 </html>
+
