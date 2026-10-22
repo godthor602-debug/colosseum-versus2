@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,7 +80,7 @@
       <div id="unit-accordion-container" class="space-y-3 pt-2"></div>
     </section>
 
-    <!-- STEP 2: BATTLE STANCE, COMMAND LIMITS & ENEMY INTEL (Swapped Forward) -->
+    <!-- STEP 2: BATTLE STANCE, COMMAND LIMITS & ENEMY INTEL -->
     <section class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5 shadow-xl space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-3">
         <div>
@@ -162,9 +163,40 @@
             </div>
           </div>
 
-          <div class="bg-stone-950/80 p-3 rounded-lg border border-stone-800 space-y-2">
-            <span class="text-xs text-stone-300 font-semibold block">Select Opposing Top Captains (Up to 5):</span>
-            <div id="enemy-captains-selector" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs"></div>
+          <!-- ENEMY CAPTAIN SELECTOR (ALL 36 CAPTAINS) -->
+          <div class="bg-stone-950/80 p-4 rounded-xl border border-stone-800 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-2">
+              <div>
+                <span class="text-xs text-stone-200 font-bold block">Enemy Top Captain Lineup</span>
+                <span class="text-[11px] text-stone-400">Select up to 5 commanders active on the enemy wall</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span id="enemy-captains-count-badge" class="text-xs font-mono text-red-400 font-bold px-2 py-0.5 rounded bg-red-950/50 border border-red-900">
+                  5 / 5 Selected
+                </span>
+                <button type="button" onclick="selectEnemyPreset('meta')" class="text-[10px] px-2 py-1 rounded bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700">Meta 5</button>
+                <button type="button" onclick="clearEnemyCaptains()" class="text-[10px] px-2 py-1 rounded bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700">Clear</button>
+              </div>
+            </div>
+
+            <!-- Enemy Search and Filter Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="relative flex-1 min-w-[180px]">
+                <i data-lucide="search" class="w-3 h-3 text-stone-400 absolute left-2.5 top-2.5"></i>
+                <input type="text" id="enemy-search-input" placeholder="Search enemy captain..." oninput="filterEnemyCaptainsDisplay()" class="w-full bg-stone-900 border border-stone-700 rounded-lg pl-7 pr-2 py-1.5 text-xs text-stone-200 focus:outline-none focus:border-red-500">
+              </div>
+              <div class="flex items-center space-x-1 text-xs">
+                <span class="text-stone-400 text-[10px] mr-1">Tier:</span>
+                <button type="button" onclick="setEnemyTierFilter('all')" id="enemy-filter-all" class="px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 text-[11px] font-semibold">All (36)</button>
+                <button type="button" onclick="setEnemyTierFilter('S')" id="enemy-filter-S" class="px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-800 text-[11px]">S</button>
+                <button type="button" onclick="setEnemyTierFilter('A')" id="enemy-filter-A" class="px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-800 text-[11px]">A</button>
+                <button type="button" onclick="setEnemyTierFilter('B')" id="enemy-filter-B" class="px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-800 text-[11px]">B</button>
+                <button type="button" onclick="setEnemyTierFilter('C')" id="enemy-filter-C" class="px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-800 text-[11px]">C</button>
+              </div>
+            </div>
+
+            <!-- Enemy Captains Grid -->
+            <div id="enemy-captains-selector" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1 max-h-72 overflow-y-auto pr-1"></div>
           </div>
         </div>
       </div>
@@ -419,23 +451,28 @@
 
     // APPLICATION STATE
     let activeCategory = 'guardsmen';
-    let battleStance = 'offense'; // 'offense' or 'defense'
+    let battleStance = 'offense';
     let selectedPlayerUnits = new Set();
     let currentTierFilter = 'all';
     let currentSearchTerm = '';
     
-    // 100% UNCHECKED / EMPTY INVENTORY BY DEFAULT (NO ASSUMPTIONS)
+    // Enemy Filter States
+    let enemyTierFilter = 'all';
+    let enemySearchTerm = '';
+
+    // 100% UNCHECKED / EMPTY INVENTORY BY DEFAULT
     let playerCaptainsPool = {};
     ALL_CAPTAINS.forEach(c => {
       playerCaptainsPool[c.id] = {
-        owned: false, // 100% unchecked initially
+        owned: false,
         stars: c.tier === 'S' ? 5 : (c.tier === 'A' ? 4 : 3),
         level: c.tier === 'S' ? 450 : 400
       };
     });
 
+    // Default top 5 enemy commanders
     let enemySelectedCaptains = ['hercules', 'heimdall', 'skadi', 'beowulf', 'cleopatra'];
-    let currentSquad = []; // Array of { captainId, stars, level, skill, gear }
+    let currentSquad = [];
 
     // STEP 1 ACCORDION FUNCTIONS
     function switchCategoryTab(cat) {
@@ -541,27 +578,84 @@
       }
     });
 
+    // ENEMY CAPTAINS SELECTOR (ALL 36 CAPTAINS)
     function renderEnemyCaptainsSelector() {
       const container = document.getElementById('enemy-captains-selector');
       container.innerHTML = '';
-      ALL_CAPTAINS.slice(0, 15).forEach(c => {
+
+      ALL_CAPTAINS.forEach(c => {
+        if (enemyTierFilter !== 'all' && c.tier !== enemyTierFilter) return;
+        if (enemySearchTerm) {
+          const match = c.name.toLowerCase().includes(enemySearchTerm) || c.role.toLowerCase().includes(enemySearchTerm);
+          if (!match) return;
+        }
+
         const isChecked = enemySelectedCaptains.includes(c.id);
-        const lbl = document.createElement('label');
-        lbl.className = `flex items-center space-x-1.5 p-1.5 rounded border text-[11px] cursor-pointer ${isChecked ? 'bg-red-950/40 border-red-800 text-red-300' : 'bg-stone-900 border-stone-800 text-stone-400'}`;
-        lbl.innerHTML = `
-          <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} onchange="toggleEnemyCaptain('${c.id}')" class="rounded border-stone-700 text-red-500 focus:ring-0">
-          <span>${c.name}</span>
+
+        const card = document.createElement('label');
+        card.className = `p-2 rounded-lg border text-xs cursor-pointer flex flex-col justify-between transition ${
+          isChecked 
+            ? 'bg-red-950/40 border-red-600/60 shadow-sm' 
+            : 'bg-stone-900/60 border-stone-800 hover:border-stone-700 opacity-70'
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold truncate text-[11px] ${isChecked ? 'text-red-300' : 'text-stone-300'}">${c.name}</span>
+            <span class="text-[9px] font-mono px-1 py-0.2 rounded ${ c.tier === 'S' ? 'bg-amber-950 text-amber-400' : (c.tier === 'A' ? 'bg-purple-950 text-purple-300' : 'bg-stone-800 text-stone-400') }">${c.tier}</span>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-stone-800/80">
+            <span class="text-[9px] text-stone-500 truncate max-w-[85px]">${c.role.split('/')[0]}</span>
+            <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} onchange="toggleEnemyCaptain('${c.id}')" class="rounded border-stone-700 text-red-600 focus:ring-0">
+          </div>
         `;
-        container.appendChild(lbl);
+        container.appendChild(card);
       });
+
+      document.getElementById('enemy-captains-count-badge').textContent = `${enemySelectedCaptains.length} / 5 Selected`;
     }
 
     window.toggleEnemyCaptain = function(capId) {
       if (enemySelectedCaptains.includes(capId)) {
         enemySelectedCaptains = enemySelectedCaptains.filter(id => id !== capId);
       } else {
-        if (enemySelectedCaptains.length < 5) enemySelectedCaptains.push(capId);
+        if (enemySelectedCaptains.length >= 5) {
+          alert('You can select a maximum of 5 enemy commanders.');
+          renderEnemyCaptainsSelector();
+          return;
+        }
+        enemySelectedCaptains.push(capId);
       }
+      renderEnemyCaptainsSelector();
+    };
+
+    window.selectEnemyPreset = function(preset) {
+      if (preset === 'meta') {
+        enemySelectedCaptains = ['hercules', 'heimdall', 'skadi', 'beowulf', 'cleopatra'];
+      }
+      renderEnemyCaptainsSelector();
+    };
+
+    window.clearEnemyCaptains = function() {
+      enemySelectedCaptains = [];
+      renderEnemyCaptainsSelector();
+    };
+
+    window.setEnemyTierFilter = function(tier) {
+      enemyTierFilter = tier;
+      ['all', 'S', 'A', 'B', 'C'].forEach(t => {
+        const btn = document.getElementById(`enemy-filter-${t}`);
+        if (t === tier) {
+          btn.className = 'px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 text-[11px] font-semibold';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-800 text-[11px]';
+        }
+      });
+      renderEnemyCaptainsSelector();
+    };
+
+    window.filterEnemyCaptainsDisplay = function() {
+      enemySearchTerm = document.getElementById('enemy-search-input').value.trim().toLowerCase();
       renderEnemyCaptainsSelector();
     };
 
@@ -592,454 +686,4 @@
               <input type="checkbox" ${poolData.owned ? 'checked' : ''} onchange="toggleCaptainOwned('${c.id}', this.checked)" class="rounded border-stone-700 text-amber-500 focus:ring-0">
               <span class="font-bold text-xs ${poolData.owned ? 'text-amber-300' : 'text-stone-400'}">${c.name}</span>
             </label>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${c.tier === 'S' ? 'bg-amber-950 text-amber-400 border border-amber-800' : (c.tier === 'A' ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-stone-800 text-stone-400')}">Tier ${c.tier}</span>
-          </div>
-          <span class="text-[10px] text-stone-400 block mb-2 truncate">${c.role}</span>
-
-          <div class="grid grid-cols-2 gap-2 text-[11px] ${poolData.owned ? '' : 'pointer-events-none opacity-40'}">
-            <div>
-              <span class="text-stone-400 block mb-0.5 text-[10px]">Stars:</span>
-              <select class="w-full bg-stone-900 border border-stone-700 text-amber-400 font-bold rounded px-1.5 py-0.5 text-xs" onchange="playerCaptainsPool['${c.id}'].stars = parseInt(this.value)">
-                ${[1,2,3,4,5,6,7].map(s => `<option value="${s}" ${s === poolData.stars ? 'selected' : ''}>${s}★</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <div class="flex justify-between text-stone-400 mb-0.5 text-[10px]">
-                <span>Lvl:</span>
-                <span class="font-mono text-stone-200" id="pool-lvl-val-${c.id}">${poolData.level}</span>
-              </div>
-              <input type="range" min="1" max="500" value="${poolData.level}" class="w-full accent-amber-500" oninput="document.getElementById('pool-lvl-val-${c.id}').innerText = this.value; playerCaptainsPool['${c.id}'].level = parseInt(this.value);">
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      const badge = document.getElementById('captains-owned-badge');
-      badge.textContent = `${countOwned} Captains Owned`;
-      badge.className = countOwned > 0 
-        ? "text-xs font-mono text-amber-400 font-bold px-2 py-1 bg-amber-950/40 rounded border border-amber-800/60"
-        : "text-xs font-mono text-stone-400 font-bold px-2 py-1 bg-stone-950 rounded border border-stone-800";
-    }
-
-    window.toggleCaptainOwned = function(capId, isChecked) {
-      playerCaptainsPool[capId].owned = isChecked;
-      renderCaptainPool();
-    };
-
-    window.selectAllCaptains = function(enable) {
-      ALL_CAPTAINS.forEach(c => {
-        playerCaptainsPool[c.id].owned = enable;
-      });
-      renderCaptainPool();
-    };
-
-    window.selectPresetCaptains = function(preset) {
-      ALL_CAPTAINS.forEach(c => {
-        playerCaptainsPool[c.id].owned = false;
-      });
-      if (preset === 'meta') {
-        ['heimdall', 'hercules', 'cleopatra', 'skadi', 'beowulf'].forEach(id => {
-          if (playerCaptainsPool[id]) playerCaptainsPool[id].owned = true;
-        });
-      }
-      renderCaptainPool();
-    };
-
-    window.setCaptainTierFilter = function(tier) {
-      currentTierFilter = tier;
-      ['all', 'S', 'A', 'B', 'C'].forEach(t => {
-        const btn = document.getElementById(`filter-tier-${t}`);
-        if (t === tier) {
-          btn.className = 'px-2 py-1 rounded bg-amber-600/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold';
-        } else {
-          btn.className = 'px-2 py-1 rounded bg-stone-800 text-stone-400 border border-stone-700 text-[11px]';
-        }
-      });
-      renderCaptainPool();
-    };
-
-    window.filterCaptainsDisplay = function() {
-      currentSearchTerm = document.getElementById('captain-search-input').value.trim().toLowerCase();
-      renderCaptainPool();
-    };
-
-    // STEP 4: AUTOMATED SQUAD SELECTION & MANUAL OVERRIDE
-    function autoPickTopSquad() {
-      const ownedCaptains = ALL_CAPTAINS.filter(c => playerCaptainsPool[c.id].owned);
-      
-      if (ownedCaptains.length === 0) {
-        return [];
-      }
-
-      const enemyArchetype = document.getElementById('enemy-archetype').value || 'heavy_burst';
-
-      // Score owned captains dynamically
-      const scored = ownedCaptains.map(c => {
-        const data = playerCaptainsPool[c.id];
-        let score = (data.level * 1.0) + (data.stars * 35);
-
-        if (c.tier === 'S') score += 120;
-        if (c.tier === 'A') score += 70;
-        if (c.tier === 'B') score += 30;
-
-        // Counter advantage
-        if (c.counterRole === enemyArchetype) {
-          score += 150;
-        }
-
-        // Stance specific weighting
-        if (battleStance === 'offense') {
-          if (c.id === 'skadi') score += 140; // Initiative freeze
-          if (c.id === 'hercules' || c.id === 'artemisia' || c.id === 'ramses') score += 120; // Burst
-        } else {
-          if (c.id === 'heimdall') score += 160; // Max defense shield
-          if (c.id === 'leonidas' || c.id === 'lucius') score += 120; // Infantry wall
-          if (c.id === 'cleopatra') score += 110; // Sustain
-        }
-
-        return {
-          captainId: c.id,
-          name: c.name,
-          tier: c.tier,
-          stars: data.stars,
-          level: data.level,
-          skill: c.defaultSkill,
-          gear: 'none',
-          totalScore: score
-        };
-      });
-
-      scored.sort((a, b) => b.totalScore - a.totalScore);
-      return scored.slice(0, Math.min(5, scored.length));
-    }
-
-    function renderSquadInterface() {
-      const container = document.getElementById('optimized-captains-grid');
-      const ownedCaptains = ALL_CAPTAINS.filter(c => playerCaptainsPool[c.id].owned);
-
-      if (currentSquad.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full p-4 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-amber-400">
-            No captains owned yet. Please check the heroes you possess in Step 3 above.
-          </div>
-        `;
-        document.getElementById('selected-synergy-score').textContent = 'Synergy Score: 0 / 100';
-        document.getElementById('active-synergies-banner').innerHTML = '<span class="text-xs text-stone-500 italic">No captains owned in Step 3.</span>';
-        return;
-      }
-
-      // Calculate active synergies
-      const activeIds = currentSquad.map(s => s.captainId);
-      let synergyScore = 50;
-      let tags = [];
-
-      if (activeIds.includes('heimdall') && activeIds.includes('hercules')) {
-        synergyScore += 15;
-        tags.push('Heimdall + Hercules (Anchor Counter)');
-      }
-      if (activeIds.includes('skadi')) {
-        synergyScore += 12;
-        tags.push('Skadi Turn-1 Freeze Priority');
-      }
-      if (activeIds.includes('cleopatra') && (activeIds.includes('hercules') || activeIds.includes('beowulf'))) {
-        synergyScore += 10;
-        tags.push('Cleopatra Sustain Core');
-      }
-      if (activeIds.includes('leonidas')) {
-        synergyScore += 8;
-        tags.push('Leonidas Phalanx Armor');
-      }
-      if (activeIds.includes('artemisia')) {
-        synergyScore += 8;
-        tags.push('Artemisia Ranged Piercing');
-      }
-
-      synergyScore = Math.min(100, synergyScore);
-      document.getElementById('selected-synergy-score').textContent = `Synergy Score: ${synergyScore}/100`;
-
-      // Render tags
-      const banner = document.getElementById('active-synergies-banner');
-      banner.innerHTML = tags.map(t => `
-        <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-medium">
-          ${t}
-        </span>
-      `).join('') || '<span class="text-xs text-stone-500">Standard counter configuration.</span>';
-
-      // Render cards
-      container.innerHTML = currentSquad.map((slot, idx) => {
-        const capDef = ALL_CAPTAINS.find(c => c.id === slot.captainId);
-
-        return `
-          <div class="bg-stone-950/80 p-3 rounded-xl border border-stone-800 space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center font-mono">
-                ${idx + 1}
-              </span>
-              
-              <!-- Manual Override Dropdown (Shows only owned captains) -->
-              <select class="bg-stone-900 border border-stone-700 text-amber-300 font-bold rounded px-1.5 py-1 text-xs" onchange="overrideSquadSlot(${idx}, this.value)">
-                ${ownedCaptains.map(c => `
-                  <option value="${c.id}" ${c.id === slot.captainId ? 'selected' : ''}>${c.name} [${c.tier}]</option>
-                `).join('')}
-              </select>
-            </div>
-
-            <div class="text-[10px] text-stone-400 flex justify-between">
-              <span>Stars: <b class="text-amber-400">${slot.stars}★</b></span>
-              <span>Level: <b class="text-stone-200">Lv ${slot.level}</b></span>
-            </div>
-
-            <div>
-              <label class="block text-stone-400 mb-0.5 text-[10px]">Skill Priority:</label>
-              <select class="w-full bg-stone-900 border border-stone-700 rounded px-1.5 py-1 text-stone-300 text-[11px]" onchange="currentSquad[${idx}].skill = this.value; calculateBattleSimulation();">
-                <option value="shield" ${slot.skill === 'shield' ? 'selected' : ''}>Damage Shield / Armor</option>
-                <option value="burst" ${slot.skill === 'burst' ? 'selected' : ''}>Burst Cleave</option>
-                <option value="cc" ${slot.skill === 'cc' ? 'selected' : ''}>Freeze / Turn Denial</option>
-                <option value="support" ${slot.skill === 'support' ? 'selected' : ''}>Team Sustain / Heal</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-stone-400 mb-0.5 text-[10px]">Equipment:</label>
-              <select class="w-full bg-stone-900 border border-stone-700 rounded px-1.5 py-1 text-stone-300 text-[10px]" onchange="currentSquad[${idx}].gear = this.value;">
-                ${GEAR_SETS.map(g => `<option value="${g.id}" ${g.id === slot.gear ? 'selected' : ''}>${g.name}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.overrideSquadSlot = function(idx, newCapId) {
-      const capData = ALL_CAPTAINS.find(c => c.id === newCapId);
-      const poolData = playerCaptainsPool[newCapId];
-      if (capData && poolData) {
-        currentSquad[idx] = {
-          captainId: newCapId,
-          name: capData.name,
-          tier: capData.tier,
-          stars: poolData.stars,
-          level: poolData.level,
-          skill: capData.defaultSkill,
-          gear: 'none'
-        };
-        renderSquadInterface();
-        calculateBattleSimulation();
-      }
-    };
-
-    // STEP 5: MARCH ALLOCATION & COMBAT SIMULATOR
-    document.getElementById('btn-calc').addEventListener('click', () => {
-      currentSquad = autoPickTopSquad();
-      renderSquadInterface();
-      calculateBattleSimulation();
-    });
-
-    function calculateBattleSimulation() {
-      const leadership = parseInt(document.getElementById('player-leadership').value) || 0;
-      const dominance = parseInt(document.getElementById('player-dominance').value) || 0;
-
-      if (leadership === 0 && dominance === 0) {
-        alert('Please enter at least one Command Capacity limit (Leadership or Dominance) in Step 2.');
-        return;
-      }
-
-      // Collect selected units from Step 1
-      const chosenUnits = [];
-      ['guardsmen', 'specialists', 'monsters'].forEach(cat => {
-        Object.keys(UNIT_DB[cat]).forEach(tier => {
-          UNIT_DB[cat][tier].forEach(u => {
-            if (selectedPlayerUnits.has(u.id)) {
-              chosenUnits.push({ ...u, category: cat, tier });
-            }
-          });
-        });
-      });
-
-      // Point-Budgeted March Allocation (Stance-Dependent Meatshield Ratio)
-      const allocation = [];
-      let meatshieldAllocatedPoints = 0;
-      let totalLdrPointsUsed = 0;
-
-      // Stance ratio: Offense = 50% meatshield | Defense = 65% meatshield
-      const meatshieldTargetRatio = battleStance === 'offense' ? 0.50 : 0.65;
-
-      const chosenGuards = chosenUnits.filter(u => u.category === 'guardsmen' || u.category === 'specialists');
-      const meatshieldUnits = chosenGuards.filter(u => u.role === 'meatshield');
-      const backlineUnits = chosenGuards.filter(u => u.role !== 'meatshield');
-
-      if (leadership > 0 && chosenGuards.length > 0) {
-        const meatTargetPoints = meatshieldUnits.length > 0 ? Math.floor(leadership * meatshieldTargetRatio) : 0;
-        const backlineTargetPoints = leadership - meatTargetPoints;
-
-        if (meatshieldUnits.length > 0) {
-          const ptsPerUnit = Math.floor(meatTargetPoints / meatshieldUnits.length);
-          meatshieldUnits.forEach(u => {
-            const count = Math.floor(ptsPerUnit / u.cost);
-            allocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
-            meatshieldAllocatedPoints += (count * u.cost);
-            totalLdrPointsUsed += (count * u.cost);
-          });
-        }
-
-        if (backlineUnits.length > 0) {
-          const ptsPerUnit = Math.floor(backlineTargetPoints / backlineUnits.length);
-          backlineUnits.forEach(u => {
-            const count = Math.floor(ptsPerUnit / u.cost);
-            allocation.push({ ...u, count, pointsUsed: count * u.cost, pointType: 'LDR' });
-            totalLdrPointsUsed += (count * u.cost);
-          });
-        }
-      }
-
-      // Dominance (Monsters)
-      const chosenMonsters = chosenUnits.filter(u => u.category === 'monsters');
-      if (dominance > 0 && chosenMonsters.length > 0) {
-        const ptsPerMon = Math.floor(dominance / chosenMonsters.length);
-        chosenMonsters.forEach(m => {
-          const count = Math.floor(ptsPerMon / m.cost);
-          allocation.push({ ...m, count, pointsUsed: count * m.cost, pointType: 'DOM' });
-        });
-      }
-
-      // Render Suggested March Table
-      const marchContainer = document.getElementById('suggested-troops-container');
-      if (allocation.length === 0) {
-        marchContainer.innerHTML = `
-          <div class="col-span-full p-4 bg-stone-950/60 rounded-xl border border-stone-800 text-center text-xs text-amber-400">
-            No units checked in Step 1. Please go back to Step 1 and check the specific units you own.
-          </div>
-        `;
-      } else {
-        marchContainer.innerHTML = allocation.map(a => `
-          <div class="bg-stone-950/80 p-3 rounded-xl border border-stone-800 flex flex-col justify-between space-y-2">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xs font-bold text-stone-200 block">${a.name}</span>
-                <span class="text-[10px] text-stone-400 uppercase font-mono">${a.tier} &bull; ${a.role}</span>
-              </div>
-              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-900 border border-stone-700 text-amber-400">
-                ${a.cost} ${a.pointType} ea
-              </span>
-            </div>
-            <div class="pt-2 border-t border-stone-900 flex justify-between items-baseline">
-              <span class="text-xs text-stone-400">Deploy:</span>
-              <div class="text-right">
-                <span class="text-sm font-bold text-emerald-400 font-mono">${a.count.toLocaleString()}</span>
-                <span class="text-[10px] text-stone-500 block font-mono">(${a.pointsUsed.toLocaleString()} ${a.pointType})</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      // 2-ROUND SIMULATION (Zero Default Assumption Engine)
-      const meatshieldRatio = totalLdrPointsUsed > 0 ? Math.round((meatshieldAllocatedPoints / totalLdrPointsUsed) * 100) : 0;
-      
-      // Real check: does player actually have Skadi in the active squad?
-      const p1HasSkadi = currentSquad.some(s => s.captainId === 'skadi');
-      const p1SkadiLevel = p1HasSkadi ? (playerCaptainsPool['skadi'].level || 400) : 0;
-
-      // Enemy check
-      const enemyHasSkadi = enemySelectedCaptains.includes('skadi');
-      const enemySkadiLevel = enemyHasSkadi ? 400 : 0;
-
-      // Speed Gate calculation:
-      let speedPenaltyOrBonus = 0;
-      if (p1HasSkadi && enemyHasSkadi) {
-        speedPenaltyOrBonus = (p1SkadiLevel >= enemySkadiLevel) ? 14 : -10;
-      } else if (p1HasSkadi && !enemyHasSkadi) {
-        speedPenaltyOrBonus = 16;
-      } else if (!p1HasSkadi && enemyHasSkadi) {
-        speedPenaltyOrBonus = -12; // Enemy locks down player on Turn 1
-      }
-
-      const stanceModifier = battleStance === 'offense' ? 10 : -5;
-      
-      let r1PlayerSurv = Math.max(0, Math.min(88, Math.round((meatshieldRatio * 0.7) + speedPenaltyOrBonus + stanceModifier + 10)));
-      let r2EnemySurv = Math.max(0, Math.min(88, Math.round(50 - (meatshieldRatio * 0.4) - speedPenaltyOrBonus)));
-
-      // Official 1-1 Survival Tiebreaker
-      let p1WinsMatch = true;
-      let verdictNote = '';
-
-      if (r1PlayerSurv > 0 && r2EnemySurv === 0) {
-        p1WinsMatch = true;
-        verdictNote = '2 - 0 Clean Sweep across both rounds';
-      } else if (r1PlayerSurv === 0 && r2EnemySurv > 0) {
-        p1WinsMatch = false;
-        verdictNote = 'Defensive line collapsed in counter round';
-      } else {
-        if (r1PlayerSurv >= r2EnemySurv) {
-          p1WinsMatch = true;
-          verdictNote = `Tied 1-1. Won on survival margin (${r1PlayerSurv}% vs ${r2EnemySurv}%)`;
-        } else {
-          p1WinsMatch = false;
-          verdictNote = `Tied 1-1. Enemy had higher survival margin (${r2EnemySurv}% vs ${r1PlayerSurv}%)`;
-        }
-      }
-
-      // Update Dashboard UI
-      document.getElementById('out-verdict').textContent = p1WinsMatch ? 'VICTORY PREDICTED' : 'DEFEAT WARNING';
-      document.getElementById('out-verdict').className = p1WinsMatch ? 'text-2xl font-extrabold font-cinzel text-emerald-400 stat-glow my-1' : 'text-2xl font-extrabold font-cinzel text-red-400 stat-glow my-1';
-      document.getElementById('out-verdict-sub').textContent = verdictNote;
-
-      document.getElementById('out-meatshield').textContent = `${meatshieldRatio}%`;
-      document.getElementById('out-tiebreaker').textContent = `${r1PlayerSurv >= r2EnemySurv ? '+' : ''}${r1PlayerSurv - r2EnemySurv}%`;
-      document.getElementById('plan-status-badge').textContent = 'Calculated & Ready';
-      document.getElementById('plan-status-badge').className = 'text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300 font-semibold';
-
-      document.getElementById('r1-verdict-badge').textContent = `${r1PlayerSurv}% Surviving`;
-      document.getElementById('r1-surv-bar').style.width = `${r1PlayerSurv}%`;
-
-      document.getElementById('r2-verdict-badge').textContent = `${r2EnemySurv}% Enemy Surviving`;
-      document.getElementById('r2-surv-bar').style.width = `${r2EnemySurv}%`;
-
-      // Tactical Notes
-      const notes = [];
-      notes.push(`• <b>Battle Stance:</b> Configured for <b>${battleStance.toUpperCase()}</b>. Meatshield allocation target set to <b>${Math.round(meatshieldTargetRatio * 100)}%</b>.`);
-
-      if (!p1HasSkadi && enemyHasSkadi) {
-        notes.push("• <b>Speed Vulnerability:</b> You do not have Skadi in your active squad. Opposing Skadi claims Turn-1 freeze priority, delaying your first skill casts.");
-      } else if (p1HasSkadi) {
-        notes.push(`• <b>Initiative Gate:</b> Player Skadi (Lv ${p1SkadiLevel}) evaluated for turn denial against opposing commanders.`);
-      }
-
-      if (meatshieldRatio < 45) {
-        notes.push("• <b>Meatshield Alert:</b> Spearmen buffer is below 45%. Backline carries risk taking heavy opposing monster cleaves.");
-      } else {
-        notes.push("• <b>Meatshield Protection:</b> Frontline buffer is sufficiently deep to absorb opening rounds of enemy burst.");
-      }
-
-      notes.push(`• <b>Official Colosseum Tiebreaker Margin:</b> In a 1-1 split, your winning round secures an estimated <b>${r1PlayerSurv}%</b> survival proportion.`);
-
-      document.getElementById('tactical-notes').innerHTML = notes.join('<br>');
-    }
-
-    // Clan War Card Clipboard Export
-    document.getElementById('btn-copy-card').addEventListener('click', () => {
-      const ldr = document.getElementById('player-leadership').value || '0';
-      const dom = document.getElementById('player-dominance').value || '0';
-      const verdict = document.getElementById('out-verdict').textContent;
-      const tiebreaker = document.getElementById('out-tiebreaker').textContent;
-      const squadNames = currentSquad.map(c => `${c.name} (${c.stars}★)`).join(', ') || 'No Squad Selected';
-
-      const card = `🛡️ [TOTAL BATTLE COLOSSEUM COUNTER PLAN]\n• Stance: ${battleStance.toUpperCase()}\n• Active 5: ${squadNames}\n• Caps: ${ldr} LDR | ${dom} DOM\n• Projected Match Outcome: ${verdict}\n• Meatshield Ratio: ${document.getElementById('out-meatshield').textContent}\n• 1-1 Survival Tiebreaker Margin: ${tiebreaker}`;
-      navigator.clipboard.writeText(card);
-      alert('Colosseum Clan War Card copied to clipboard!');
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      location.reload();
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      renderAccordion();
-      renderCaptainPool();
-      renderEnemyCaptainsSelector();
-      lucide.createIcons();
-    });
-  </script>
-</body>
-</html>
+            <span class="text-[10px] font-mono font-bold px
